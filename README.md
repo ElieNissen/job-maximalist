@@ -1,16 +1,15 @@
 # Job Maximalist
 
-Tableau de bord local pour centraliser des offres d'emploi depuis plusieurs sources, appliquer des filtres personnalisables, suivre les nouveaux résultats et garder un historique de consultation.
+Un tableau de bord d'offres de missions/jobs qui centralise tout, donne un contrôle fin sur les sources suivies, réduit le bruit grâce à un tri avancé, et permet de repérer plus vite les annonces réellement pertinentes en quasi temps réel. L'objectif : remplacer la FOMO d'une veille manuelle, fragmentée et redondante par une paix intérieure au quotidien ✌️
 
 ## Ce que fait l'application
 
-- agrège des offres depuis plusieurs sites d'emploi
-- permet de gérer les sources suivies depuis l'interface
-- applique des filtres persistants modifiables dans l'app
-- distingue les offres visibles et les offres exclues
-- garde un historique local des détections, vues et favoris
-- expose un diagnostic par source pour comprendre ce qui a été trouvé ou bloqué
-
+- agrège des offres depuis plusieurs sites d'emploi sélectionnables par l'utilisateur
+- filtres poussés: mots clés flexibles, localisation, types de missions/contrats, exclusion de mots clés
+- envoie une notification quand une offre correspondant aux critères est postée sur l'un des sites (intervalle de rafraîchissement modifiable) et différencie les nouvelles offres de celles déjà détectées
+- dédoublonnage des offres présentes sur plusieurs sources
+- interfaces diagnostics : consultation des offres refusées pour exclusion de mots-clés/localisation/etc, sources cassées/bloquées...
+  
 ## Stack
 
 - Next.js (App Router) + TypeScript
