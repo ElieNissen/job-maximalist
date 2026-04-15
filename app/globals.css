@@ -1,0 +1,1108 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap");
+
+:root,
+:root[data-theme="light"] {
+  --bg: #f6f2eb;
+  --text: #1f1a16;
+  --surface: #fffdfa;
+  --surface-soft: #f1ebe3;
+  --surface-muted: #ebe3d9;
+  --accent: #5b4337;
+  --accent-soft: rgba(91, 67, 55, 0.1);
+  --muted: #6f655d;
+  --muted-strong: #4b413a;
+  --border: rgba(74, 64, 57, 0.14);
+  --border-strong: rgba(74, 64, 57, 0.22);
+  --shadow-card: 0 10px 20px rgba(52, 42, 35, 0.05);
+  --shadow-card-hover: 0 14px 28px rgba(52, 42, 35, 0.08);
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-sm: 14px;
+  --radius-pill: 999px;
+}
+
+:root[data-theme="dark"] {
+  --bg: #171514;
+  --text: #f4efe8;
+  --surface: #312b27;
+  --surface-soft: #24201d;
+  --surface-muted: #1e1a18;
+  --accent: #d7b69f;
+  --accent-soft: rgba(215, 182, 159, 0.12);
+  --muted: #b5aaa0;
+  --muted-strong: #e5ddd6;
+  --border: rgba(238, 225, 213, 0.1);
+  --border-strong: rgba(238, 225, 213, 0.2);
+  --shadow-card: 0 12px 24px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 16px 32px rgba(0, 0, 0, 0.26);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans", "Segoe UI", sans-serif;
+}
+
+:root[data-theme="dark"] body {
+  background: var(--bg);
+}
+
+main {
+  min-width: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+input {
+  min-width: 0;
+}
+
+.radar-page {
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: 0 0 clamp(22px, 2.8vw, 32px);
+  background: var(--bg);
+}
+
+.radar-shell {
+  display: grid;
+  gap: 18px;
+  background: var(--bg);
+}
+
+.radar-navigation-band {
+  width: 100%;
+  padding: 16px clamp(14px, 3vw, 32px);
+  background: var(--surface);
+  border-bottom: 1px solid rgba(74, 64, 57, 0.07);
+  box-shadow:
+    0 6px 14px rgba(47, 38, 31, 0.025),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+:root[data-theme="dark"] .radar-navigation-band {
+  background: var(--surface);
+  border-bottom-color: rgba(238, 225, 213, 0.08);
+  box-shadow: none;
+}
+
+.radar-navigation-shell {
+  display: grid;
+  gap: 18px;
+  width: min(100%, 1040px);
+  margin-inline: auto;
+}
+
+.radar-content-shell {
+  position: relative;
+  width: min(100%, 1040px);
+  margin-inline: auto;
+  background: transparent;
+}
+
+.radar-content-shell::before {
+  content: none;
+}
+
+:root[data-theme="dark"] .radar-content-shell::before {
+  content: none;
+}
+
+.radar-content-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.radar-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px 16px;
+}
+
+.radar-tab-row,
+.radar-toolbar__actions,
+.radar-chip-row,
+.radar-job-card__pills,
+.radar-job-card__meta-row,
+.radar-inline-actions,
+.radar-settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.radar-tab-button,
+.radar-utility-button,
+.radar-primary-action,
+.radar-inline-button,
+.radar-chip,
+.radar-secondary-note,
+.radar-count-pill,
+.radar-meta-chip,
+.radar-reason-chip,
+.radar-bookmark-button,
+.radar-close-button,
+.radar-settings-tab,
+.radar-icon-toggle {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+
+.radar-tab-button,
+.radar-utility-button,
+.radar-chip,
+.radar-inline-button,
+.radar-primary-action,
+.radar-settings-tab,
+.radar-icon-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  color: var(--muted-strong);
+}
+
+.radar-tab-row {
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-pill) + 4px);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-soft) 86%, white 14%) 0%, color-mix(in srgb, var(--surface-soft) 96%, white 4%) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 12px 22px rgba(52, 42, 35, 0.04);
+}
+
+:root[data-theme="dark"] .radar-tab-row {
+  background: var(--surface-soft);
+  border-color: rgba(238, 225, 213, 0.12);
+  box-shadow: none;
+}
+
+.radar-tab-button strong,
+.radar-chip strong {
+  font-size: 0.82rem;
+}
+
+.radar-tab-button {
+  min-width: 88px;
+  justify-content: center;
+  border-color: transparent;
+  background: transparent;
+  font-weight: 600;
+  border-radius: 18px;
+  padding: 8px 11px;
+}
+
+.radar-tab-button.is-active {
+  background: var(--surface);
+  border-color: rgba(74, 64, 57, 0.08);
+  color: var(--text);
+  box-shadow:
+    0 12px 24px rgba(78, 64, 52, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme="dark"] .radar-tab-button.is-active {
+  background: var(--surface);
+  border-color: rgba(238, 225, 213, 0.08);
+  box-shadow: none;
+}
+
+.radar-utility-button,
+.radar-icon-toggle,
+.radar-settings-tab {
+  padding: 9px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-soft) 78%, white 22%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 8px 18px rgba(52, 42, 35, 0.04);
+}
+
+:root[data-theme="dark"] .radar-utility-button,
+:root[data-theme="dark"] .radar-inline-button,
+:root[data-theme="dark"] .radar-icon-toggle,
+:root[data-theme="dark"] .radar-settings-tab {
+  background: var(--surface-soft);
+  border-color: rgba(238, 225, 213, 0.1);
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .radar-chip.is-active.is-neutral {
+  background: color-mix(in srgb, var(--surface) 88%, black 12%);
+  border-color: rgba(238, 225, 213, 0.12);
+  color: var(--muted-strong);
+}
+
+:root[data-theme="dark"] .radar-chip {
+  box-shadow: none;
+}
+
+.radar-icon-toggle {
+  justify-content: center;
+  width: 42px;
+  padding-inline: 0;
+}
+
+.radar-utility-button.is-active,
+.radar-settings-tab.is-active,
+.radar-chip.is-active.is-neutral {
+  background: var(--accent-soft);
+  border-color: rgba(91, 67, 55, 0.18);
+  color: var(--text);
+}
+
+.radar-chip {
+  padding: 9px 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-soft) 82%, white 18%) 0%, color-mix(in srgb, var(--surface-soft) 92%, white 8%) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 4px 10px rgba(52, 42, 35, 0.03);
+}
+
+.radar-chip.is-active {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--chip-active-bg, var(--accent)) 88%, white 12%) 0%,
+      color-mix(in srgb, var(--chip-active-bg, var(--accent)) 100%, black 0%) 46%,
+      color-mix(in srgb, var(--chip-active-bg, var(--accent)) 82%, black 18%) 100%
+    );
+  border-color: transparent;
+  color: var(--chip-active-text, #fff);
+  box-shadow: 0 8px 16px rgba(26, 23, 18, 0.12);
+}
+
+:root[data-theme="dark"] .radar-chip.is-active,
+:root[data-theme="dark"] .radar-source-pill {
+  filter: none;
+}
+
+:root[data-theme="dark"] .radar-chip.is-active {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--chip-active-bg, var(--accent)) 76%, white 24%) 0%,
+      color-mix(in srgb, var(--chip-active-bg, var(--accent)) 96%, black 4%) 46%,
+      color-mix(in srgb, var(--chip-active-bg, var(--accent)) 78%, black 22%) 100%
+    );
+  box-shadow: none;
+}
+
+.radar-primary-action {
+  min-width: 154px;
+  justify-content: center;
+  padding: 9px 14px;
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 700;
+  box-shadow:
+    0 8px 18px rgba(60, 44, 35, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+}
+
+:root[data-theme="dark"] .radar-primary-action {
+  color: #171514;
+  box-shadow: none;
+}
+
+.radar-primary-action--small {
+  padding: 9px 14px;
+}
+
+.radar-tab-button:hover,
+.radar-utility-button:hover,
+.radar-chip:hover,
+.radar-inline-button:hover,
+.radar-primary-action:hover,
+.radar-source-pill:hover,
+.radar-chip--source:hover,
+.radar-close-button:hover,
+.radar-bookmark-button:hover,
+.radar-job-card:hover,
+.radar-icon-toggle:hover,
+.radar-settings-tab:hover {
+  transform: translateY(-1px);
+}
+
+.radar-toolbar__actions {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.radar-button-icon,
+.radar-dialog-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.radar-inline-error,
+.radar-mini-stack,
+.radar-attempt-row,
+.radar-field span,
+.radar-checkbox-row span,
+.radar-modal__subtitle,
+.radar-source-card__metrics,
+.radar-section-stamp {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.radar-filter-strip,
+.radar-list-stack,
+.radar-list-section,
+.radar-form-grid,
+.radar-url-list,
+.radar-source-list,
+.radar-mini-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.radar-filter-strip {
+  padding: 12px 0 30px;
+  background: transparent;
+}
+
+.radar-filter-strip__actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+
+.radar-list-stack {
+  gap: 46px;
+}
+
+.radar-section-title {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: clamp(1.05rem, 1.2vw, 1.3rem);
+  line-height: 1.15;
+}
+
+.radar-list-section__header,
+.radar-source-card__summary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.radar-refresh-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  white-space: nowrap;
+}
+
+.radar-refresh-meta__separator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 10px;
+  color: color-mix(in srgb, var(--muted) 86%, transparent 14%);
+  flex: 0 0 auto;
+}
+
+.radar-refresh-meta__separator::before {
+  content: "-";
+}
+
+.radar-refresh-meta__text {
+  white-space: nowrap;
+}
+
+.radar-job-list {
+  display: grid;
+  gap: 18px;
+}
+
+.radar-empty-state {
+  position: relative;
+  min-height: 28px;
+  padding: 18px 0;
+  border-top: 1px dashed var(--border);
+  background: transparent;
+}
+
+.radar-empty-state strong {
+  color: var(--text);
+}
+
+.radar-empty-state--graphic {
+  border-top: none;
+}
+
+.radar-empty-state__callout {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  background: transparent;
+}
+
+.radar-empty-state__callout::before,
+.radar-empty-state__callout::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-image: linear-gradient(to right, rgba(74, 64, 57, 0.3) 33%, rgba(255, 255, 255, 0) 0%);
+  background-position: top;
+  background-size: 10px 1px;
+  background-repeat: repeat-x;
+}
+
+.radar-empty-state__bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-inline: 18px;
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, white 8%) 0%, var(--surface) 100%);
+  color: var(--muted-strong);
+  font-weight: 600;
+  box-shadow:
+    0 5px 12px rgba(52, 42, 35, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme="dark"] .radar-empty-state__bubble {
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.radar-job-card {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  padding: 18px;
+  border: 1px solid rgba(74, 64, 57, 0.12);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 6px 14px rgba(52, 42, 35, 0.045);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.radar-job-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 72px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+.radar-job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(52, 42, 35, 0.07);
+  border-color: rgba(74, 64, 57, 0.22);
+}
+
+.radar-job-card.is-bookmarked {
+  background: linear-gradient(180deg, rgba(236, 248, 241, 0.98) 0%, rgba(255, 255, 255, 0.98) 48%);
+  border-color: rgba(56, 131, 92, 0.2);
+}
+
+:root[data-theme="dark"] .radar-job-card {
+  background: var(--surface);
+  border-color: rgba(238, 225, 213, 0.08);
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .radar-job-card::before {
+  content: none;
+}
+
+:root[data-theme="dark"] .radar-job-card:hover {
+  border-color: rgba(238, 225, 213, 0.16);
+}
+
+:root[data-theme="dark"] .radar-job-card.is-bookmarked {
+  background: color-mix(in srgb, #2f7d4c 14%, var(--surface) 86%);
+}
+
+.radar-job-card.is-excluded {
+  background: linear-gradient(180deg, rgba(255, 250, 247, 0.98) 0%, rgba(255, 255, 255, 0.98) 46%);
+}
+
+:root[data-theme="dark"] .radar-job-card.is-excluded {
+  background: color-mix(in srgb, #7d4a3a 10%, var(--surface) 90%);
+}
+
+.radar-job-card__topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.radar-source-pill,
+.radar-secondary-note,
+.radar-count-pill,
+.radar-meta-chip,
+.radar-reason-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.radar-source-pill,
+.radar-chip--source {
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.radar-secondary-note,
+.radar-count-pill,
+.radar-meta-chip {
+  border-color: rgba(74, 64, 57, 0.12);
+  background: transparent;
+  color: var(--muted-strong);
+}
+
+:root[data-theme="dark"] .radar-secondary-note,
+:root[data-theme="dark"] .radar-count-pill,
+:root[data-theme="dark"] .radar-meta-chip {
+  border-color: rgba(238, 225, 213, 0.08);
+  color: #d8cfc7;
+}
+
+.radar-chip--source {
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.radar-bookmark-button,
+.radar-close-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--muted);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 2px 5px rgba(42, 33, 26, 0.035);
+}
+
+:root[data-theme="dark"] .radar-bookmark-button,
+:root[data-theme="dark"] .radar-close-button {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.radar-bookmark-button.is-active {
+  background: rgba(60, 151, 94, 0.12);
+  border-color: rgba(60, 151, 94, 0.22);
+  color: #2f7d4c;
+}
+
+.radar-bookmark-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.radar-job-card__body,
+.radar-job-card__content {
+  display: grid;
+  gap: 6px;
+}
+
+.radar-job-card__title {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.14rem, 1.15vw, 1.38rem);
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.radar-job-card__company,
+.radar-job-card__location {
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.radar-job-card__company {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.radar-job-card__location {
+  color: var(--muted);
+}
+
+.radar-job-card__meta-row {
+  gap: 8px;
+}
+
+.radar-reason-chip {
+  border-radius: var(--radius-pill);
+  border-width: 1px;
+}
+
+.radar-reason-chip__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.radar-reason-chip--title {
+  background: rgba(246, 231, 212, 0.8);
+  border-color: rgba(181, 119, 45, 0.2);
+  color: #7f4f18;
+}
+
+.radar-reason-chip--keyword {
+  background: rgba(250, 222, 222, 0.84);
+  border-color: rgba(172, 69, 69, 0.2);
+  color: #8d2d2d;
+}
+
+.radar-reason-chip--location {
+  background: rgba(226, 235, 251, 0.86);
+  border-color: rgba(72, 107, 179, 0.2);
+  color: #345c99;
+}
+
+.radar-reason-chip--contract {
+  background: rgba(232, 240, 220, 0.84);
+  border-color: rgba(101, 138, 66, 0.2);
+  color: #46652c;
+}
+
+.radar-reason-chip--generic {
+  background: rgba(238, 235, 230, 0.9);
+  border-color: rgba(106, 98, 88, 0.16);
+  color: #5a5148;
+}
+
+.radar-checkbox-row,
+.radar-field {
+  display: grid;
+  gap: 8px;
+}
+
+.radar-checkbox-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.radar-field input,
+.radar-field select,
+.radar-url-row input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .radar-field input,
+:root[data-theme="dark"] .radar-field select,
+:root[data-theme="dark"] .radar-url-row input {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.radar-url-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.radar-inline-button {
+  padding: 9px 14px;
+  background: color-mix(in srgb, var(--surface-soft) 88%, white 12%);
+}
+
+.radar-inline-button--diagnostic {
+  justify-content: center;
+}
+
+.radar-inline-button--filters {
+  min-height: 40px;
+}
+
+.radar-source-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(74, 64, 57, 0.12);
+  border-radius: 16px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 74%, white 26%) 0%, color-mix(in srgb, var(--surface-soft) 76%, white 24%) 100%);
+  box-shadow:
+    0 10px 22px rgba(56, 46, 38, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+:root[data-theme="dark"] .radar-source-card {
+  background: var(--surface-soft);
+  border-color: rgba(238, 225, 213, 0.1);
+  box-shadow: none;
+}
+
+.radar-source-card__title {
+  display: block;
+  color: var(--text);
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+
+.radar-source-card__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 6px;
+}
+
+.radar-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: start center;
+  padding: clamp(18px, 4vw, 40px);
+  background: rgba(31, 26, 22, 0.18);
+  backdrop-filter: blur(8px);
+}
+
+.radar-modal {
+  position: relative;
+  width: min(100%, 980px);
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 94%, white 6%) 0%, var(--surface) 100%);
+  box-shadow:
+    0 28px 70px rgba(36, 31, 27, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+:root[data-theme="dark"] .radar-modal,
+:root[data-theme="dark"] .radar-detail-dialog {
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.radar-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.radar-modal__title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.radar-modal__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-soft) 88%, white 12%);
+  color: var(--muted-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 8px 16px rgba(52, 42, 35, 0.05);
+}
+
+:root[data-theme="dark"] .radar-modal__icon {
+  background: var(--surface-soft);
+  box-shadow: none;
+}
+
+.radar-modal__title {
+  display: block;
+  color: var(--text);
+  font-size: 1.06rem;
+  line-height: 1.2;
+}
+
+.radar-source-list {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-content: start;
+  overflow: auto;
+  max-height: calc(100vh - 250px);
+  padding-right: 4px;
+}
+
+.radar-form-grid {
+  overflow: auto;
+  max-height: calc(100vh - 250px);
+  padding-right: 4px;
+}
+
+.radar-form-grid--filters {
+  gap: 16px;
+  max-height: calc(100vh - 286px);
+  padding-right: 6px;
+  padding-bottom: 10px;
+  padding-top: 0;
+}
+
+.radar-filter-impact-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-top: 2px;
+  padding-bottom: 10px;
+  background: linear-gradient(to bottom, var(--surface) 0%, var(--surface) 82%, transparent 100%);
+}
+
+:root[data-theme="dark"] .radar-filter-impact-sticky {
+  background: linear-gradient(to bottom, var(--surface) 0%, var(--surface) 82%, transparent 100%);
+}
+
+.radar-filter-impact-banner {
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid rgba(74, 64, 57, 0.12);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 84%, white 16%);
+  box-shadow: 0 10px 24px rgba(43, 35, 30, 0.06);
+}
+
+:root[data-theme="dark"] .radar-filter-impact-banner {
+  border-color: rgba(238, 225, 213, 0.08);
+  background: var(--surface-soft);
+  box-shadow: none;
+}
+
+.radar-filter-impact-banner__main {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-strong);
+}
+
+.radar-filter-group {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(74, 64, 57, 0.1);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-soft) 82%, white 18%);
+}
+
+:root[data-theme="dark"] .radar-filter-group {
+  border-color: rgba(238, 225, 213, 0.08);
+  background: var(--surface-soft);
+}
+
+.radar-filter-group__header {
+  display: grid;
+  gap: 4px;
+}
+
+.radar-filter-group__checks {
+  display: grid;
+  gap: 10px;
+}
+
+.radar-filter-group__checks--grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.radar-filter-list {
+  display: grid;
+  gap: 8px;
+}
+
+.radar-filter-token-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(74, 64, 57, 0.08);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+:root[data-theme="dark"] .radar-filter-token-row {
+  border-color: rgba(238, 225, 213, 0.08);
+  background: var(--surface);
+}
+
+.radar-url-row--compact {
+  align-items: start;
+}
+
+.radar-inline-actions--footer {
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.radar-detail-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: rgba(31, 26, 22, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+.radar-detail-dialog {
+  width: min(100%, 720px);
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow:
+    0 20px 48px rgba(36, 31, 27, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.46);
+}
+
+.radar-attempt-row {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(74, 64, 57, 0.08);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-soft) 86%, white 14%);
+}
+
+:root[data-theme="dark"] .radar-attempt-row {
+  background: color-mix(in srgb, var(--surface-soft) 88%, black 12%);
+  border-color: rgba(238, 225, 213, 0.08);
+}
+
+.radar-error-banner {
+  padding: 12px 14px;
+  border: 1px solid rgba(176, 80, 80, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 239, 239, 0.92);
+}
+
+@media (max-width: 900px) {
+  .radar-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: flex-start;
+  }
+
+  .radar-toolbar__actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .radar-page {
+    padding-bottom: 12px;
+  }
+
+  .radar-toolbar,
+  .radar-toolbar__actions,
+  .radar-source-card__summary,
+  .radar-list-section__header,
+  .radar-job-card__topline,
+  .radar-modal__header,
+  .radar-url-row {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .radar-tab-row {
+    width: 100%;
+  }
+
+  .radar-tab-button {
+    min-width: 0;
+  }
+
+  .radar-navigation-band {
+    padding-inline: 12px;
+  }
+
+  .radar-modal,
+  .radar-detail-dialog {
+    padding: 16px;
+  }
+}

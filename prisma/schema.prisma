@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Source {
+  linkedin
+  wttj
+  indeed
+  hellowork
+  service_public
+  hiring_cafe
+  licorne_society
+  career_sites
+  greenhouse
+  lever
+  smartrecruiters
+  politepol
+}
+
+enum ContractType {
+  CDI
+  CDD
+  OTHER
+}
+
+enum RefreshStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+model Job {
+  id              String       @id @default(cuid())
+  source          Source
+  sourceJobId     String
+  title           String
+  company         String
+  location        String
+  contractType    ContractType
+  url             String
+  postedAt        DateTime
+  scrapedAt       DateTime
+  matchedKeywords String
+  excludedReason  String?
+  fingerprint     String       @unique
+  viewed          Boolean      @default(false)
+  saved           Boolean      @default(false)
+
+  @@unique([source, sourceJobId])
+}
+
+model RefreshRun {
+  id        String        @id @default(cuid())
+  source    Source?
+  status    RefreshStatus
+  startedAt DateTime
+  endedAt   DateTime?
+  newCount  Int           @default(0)
+  error     String?
+}
+
+model AtsRun {
+  id        String        @id @default(cuid())
+  source    Source
+  target    String
+  status    RefreshStatus
+  startedAt DateTime
+  endedAt   DateTime?
+  newCount  Int           @default(0)
+  error     String?
+}
