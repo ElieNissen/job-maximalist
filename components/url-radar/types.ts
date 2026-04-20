@@ -26,6 +26,7 @@ export type UrlRadarJob = {
   lastSeenAt: string;
   scrapedAt: string;
   excludedReason: string | null;
+  excludedKeywords: string[];
   viewed: boolean;
   saved: boolean;
   experienceHint: string | null;
@@ -125,6 +126,7 @@ export type JobCluster = {
   experienceHint: string | null;
   sources: JobClusterSource[];
   excludedReasons: string[];
+  excludedKeywordMatches: string[];
 };
 
 export type SourceFilterOption = {

@@ -160,15 +160,33 @@ function matchesDesignTitle(titleNormalized: string, filters: JobSearchFilters):
   return [];
 }
 
+function findExcludedKeywords(titleLoose: string, excludedKeywords: readonly string[]): string[] {
+  const seen = new Set<string>();
+  const matches: string[] = [];
+
+  for (const keyword of excludedKeywords) {
+    const normalizedKeyword = normalizeText(keyword);
+    if (!normalizedKeyword || !titleLoose.includes(normalizedKeyword) || seen.has(normalizedKeyword)) {
+      continue;
+    }
+
+    seen.add(normalizedKeyword);
+    matches.push(keyword.trim());
+  }
+
+  return matches;
+}
+
 export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): {
   match: boolean;
   matchedKeywords: string[];
   excludedReason: string | null;
+  excludedKeywords: string[];
 } {
   const isVieJob = /businessfrance\.fr/i.test(job.url);
 
   if (!filters.sources.includes(job.source)) {
-    return { match: false, matchedKeywords: [], excludedReason: "source_mismatch" };
+    return { match: false, matchedKeywords: [], excludedReason: "source_mismatch", excludedKeywords: [] };
   }
 
   const titleNormalized = normalizeForMatch(job.title);
@@ -177,14 +195,12 @@ export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): {
 
   const matchedKeywords = matchesDesignTitle(titleNormalized, filters);
   if (matchedKeywords.length === 0) {
-    return { match: false, matchedKeywords: [], excludedReason: "no_include_keyword_match" };
+    return { match: false, matchedKeywords: [], excludedReason: "no_include_keyword_match", excludedKeywords: [] };
   }
 
-  const hasExcludedWord = filters.keywordsExclude.some((keyword) =>
-    titleLoose.includes(normalizeText(keyword))
-  );
-  if (hasExcludedWord) {
-    return { match: false, matchedKeywords, excludedReason: "excluded_keyword" };
+  const excludedKeywords = findExcludedKeywords(titleLoose, filters.keywordsExclude);
+  if (excludedKeywords.length > 0) {
+    return { match: false, matchedKeywords, excludedReason: "excluded_keyword", excludedKeywords };
   }
 
   const hasLocationMatch = filters.locations.some((candidate) =>
@@ -196,21 +212,21 @@ export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): {
     Array.from(UNKNOWN_LOCATION_TOKENS).some((token) => location === token || location.includes(`${token} `));
 
   if (!isVieJob && !hasLocationMatch && !isLikelyIDF && !isUnknownPolitepolLocation) {
-    return { match: false, matchedKeywords, excludedReason: "location_mismatch" };
+    return { match: false, matchedKeywords, excludedReason: "location_mismatch", excludedKeywords: [] };
   }
 
   if (typeof filters.postedSinceHours === "number" && Number.isFinite(job.postedAt.getTime())) {
     const maxAgeMs = filters.postedSinceHours * 60 * 60 * 1000;
     const ageMs = Date.now() - job.postedAt.getTime();
     if (ageMs > maxAgeMs) {
-      return { match: false, matchedKeywords, excludedReason: "posted_too_old" };
+      return { match: false, matchedKeywords, excludedReason: "posted_too_old", excludedKeywords: [] };
     }
   }
 
   // Contract is often missing in feeds. Keep CDI/CDD strict when present, tolerate unknown.
   if (job.contractType !== "OTHER" && !filters.contractTypes.includes(job.contractType as "CDI" | "CDD")) {
-    return { match: false, matchedKeywords, excludedReason: "contract_type_mismatch" };
+    return { match: false, matchedKeywords, excludedReason: "contract_type_mismatch", excludedKeywords: [] };
   }
 
-  return { match: true, matchedKeywords, excludedReason: null };
+  return { match: true, matchedKeywords, excludedReason: null, excludedKeywords: [] };
 }

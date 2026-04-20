@@ -45,6 +45,7 @@ export interface UrlRadarJob {
   scrapedAt: string;
   matchedKeywords: string[];
   excludedReason: string | null;
+  excludedKeywords: string[];
   viewed: boolean;
   saved: boolean;
   experienceHint: string | null;
@@ -2146,7 +2147,8 @@ function migrateJob(job: any, filters?: JobSearchFilters): UrlRadarJob {
     experienceHint: job.experienceHint ?? null,
     metadataText: metadataText ?? null
   };
-  const shouldReclassify = Boolean(filters) || !Array.isArray(job.matchedKeywords) || !("excludedReason" in job);
+  const shouldReclassify =
+    Boolean(filters) || !Array.isArray(job.matchedKeywords) || !("excludedReason" in job) || !Array.isArray(job.excludedKeywords);
   const filterResult = shouldReclassify
     ? matchesFilters(normalizedForFilters, filters ?? cloneUrlRadarFilters(URL_RADAR_DEFAULT_FILTERS))
     : null;
@@ -2168,6 +2170,11 @@ function migrateJob(job: any, filters?: JobSearchFilters): UrlRadarJob {
     excludedReason:
       filterResult?.excludedReason ??
       (typeof job.excludedReason === "string" || job.excludedReason === null ? job.excludedReason : null),
+    excludedKeywords:
+      filterResult?.excludedKeywords ??
+      (Array.isArray(job.excludedKeywords)
+        ? job.excludedKeywords.filter((keyword: unknown): keyword is string => typeof keyword === "string" && keyword.trim().length > 0)
+        : []),
     viewed: Boolean(job.viewed),
     saved: Boolean(job.saved),
     experienceHint: job.experienceHint ?? null,
@@ -2228,7 +2235,13 @@ async function writeState(state: UrlRadarState): Promise<void> {
   await fs.writeFile(FILE_PATH, JSON.stringify(state, null, 2), "utf8");
 }
 
-function toStoredJob(job: NormalizedJob, seenAt: Date, matchedKeywords: string[], excludedReason: string | null): UrlRadarJob {
+function toStoredJob(
+  job: NormalizedJob,
+  seenAt: Date,
+  matchedKeywords: string[],
+  excludedReason: string | null,
+  excludedKeywords: string[]
+): UrlRadarJob {
   const key = `${job.source}|${job.sourceJobId}|${canonicalUrl(job.url)}`;
   const timestamp = seenAt.toISOString();
   return {
@@ -2246,6 +2259,7 @@ function toStoredJob(job: NormalizedJob, seenAt: Date, matchedKeywords: string[]
     scrapedAt: timestamp,
     matchedKeywords,
     excludedReason,
+    excludedKeywords,
     viewed: false,
     saved: false,
     experienceHint: job.experienceHint ?? null,
@@ -2285,7 +2299,7 @@ export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNe
 
     for (const job of result.jobs) {
       const filter = matchesFilters(job, filters);
-      const stored = toStoredJob(job, seenAt, filter.matchedKeywords, filter.excludedReason);
+      const stored = toStoredJob(job, seenAt, filter.matchedKeywords, filter.excludedReason, filter.excludedKeywords);
       const existing = jobsById.get(stored.id);
 
       if (existing) {

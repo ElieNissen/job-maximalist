@@ -121,7 +121,10 @@ export default function UrlRadarTab() {
       if (jobsRes.ok) {
         const payload = await jobsRes.json();
         const nextJobs: UrlRadarJobsResponse = {
-          items: payload.items ?? [],
+          items: (payload.items ?? []).map((item: UrlRadarJobsResponse["items"][number]) => ({
+            ...item,
+            excludedKeywords: Array.isArray(item.excludedKeywords) ? item.excludedKeywords : []
+          })),
           total: payload.total ?? 0,
           newSinceLastRefresh: payload.newSinceLastRefresh ?? 0,
           lastRefreshAt: payload.lastRefreshAt ?? null,

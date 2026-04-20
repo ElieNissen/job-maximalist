@@ -39,5 +39,6 @@ describe("matchesFilters", () => {
 
     expect(result.match).toBe(false);
     expect(result.excludedReason).toBe("excluded_keyword");
+    expect(result.excludedKeywords).toEqual(["senior"]);
   });
 });

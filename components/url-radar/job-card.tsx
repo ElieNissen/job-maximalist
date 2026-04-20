@@ -47,8 +47,25 @@ function buildMetaItems(cluster: JobCluster): string[] {
   return items;
 }
 
+function buildExcludedKeywordLabel(keywords: string[]): string {
+  if (keywords.length === 0) {
+    return EXCLUSION_REASON_META.excluded_keyword.label;
+  }
+
+  return keywords.length === 1 ? `Contient le mot ${keywords[0]}` : `Contient les mots ${keywords.join(", ")}`;
+}
+
 function buildReasonItems(cluster: JobCluster): Array<{ label: string; code: string; tone: string }> {
-  return cluster.excludedReasons.map((reason) => EXCLUSION_REASON_META[reason] ?? { label: reason.replace(/_/g, " "), code: "?", tone: "generic" });
+  return cluster.excludedReasons.map((reason) => {
+    if (reason === "excluded_keyword") {
+      return {
+        ...EXCLUSION_REASON_META.excluded_keyword,
+        label: buildExcludedKeywordLabel(cluster.excludedKeywordMatches)
+      };
+    }
+
+    return EXCLUSION_REASON_META[reason] ?? { label: reason.replace(/_/g, " "), code: "?", tone: "generic" };
+  });
 }
 
 function BookmarkIcon({ active }: { active: boolean }) {

@@ -43,6 +43,20 @@ function normalizeKeyPart(value: string): string {
     .trim();
 }
 
+function mergeKeywordMatches(current: string[], incoming: readonly string[]): string[] {
+  const seen = new Set(current.map(normalizeKeyPart).filter(Boolean));
+  const merged = [...current];
+
+  for (const keyword of incoming) {
+    const normalized = normalizeKeyPart(keyword);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    merged.push(keyword);
+  }
+
+  return merged;
+}
+
 function fallbackSourceLabel(source: JobSource): string {
   switch (source) {
     case "linkedin":
@@ -130,7 +144,8 @@ export function clusterJobs(items: UrlRadarJob[]): JobCluster[] {
         saved: job.saved,
         experienceHint: job.experienceHint,
         sources: [{ source: job.source, url: job.url }],
-        excludedReasons: job.excludedReason ? [job.excludedReason] : []
+        excludedReasons: job.excludedReason ? [job.excludedReason] : [],
+        excludedKeywordMatches: Array.isArray(job.excludedKeywords) ? mergeKeywordMatches([], job.excludedKeywords) : []
       });
       continue;
     }
@@ -151,6 +166,9 @@ export function clusterJobs(items: UrlRadarJob[]): JobCluster[] {
     if (existing.contractType === "OTHER" && job.contractType !== "OTHER") existing.contractType = job.contractType;
     if (job.excludedReason && !existing.excludedReasons.includes(job.excludedReason)) {
       existing.excludedReasons.push(job.excludedReason);
+    }
+    if (Array.isArray(job.excludedKeywords) && job.excludedKeywords.length > 0) {
+      existing.excludedKeywordMatches = mergeKeywordMatches(existing.excludedKeywordMatches, job.excludedKeywords);
     }
   }
 
