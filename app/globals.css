@@ -342,6 +342,15 @@ input {
   padding: 9px 14px;
 }
 
+.radar-primary-action.is-loading {
+  cursor: progress;
+}
+
+.radar-primary-action.is-loading .radar-button-icon.is-spinning {
+  animation: radar-refresh-spin 0.85s linear infinite;
+  transform-origin: center;
+}
+
 .radar-tab-button:hover,
 .radar-utility-button:hover,
 .radar-chip:hover,
@@ -367,6 +376,16 @@ input {
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+}
+
+@keyframes radar-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .radar-inline-error,
@@ -529,6 +548,14 @@ input {
   overflow: hidden;
 }
 
+.radar-job-card__overlay-link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  text-decoration: none;
+}
+
 .radar-job-card::before {
   content: "";
   position: absolute;
@@ -542,6 +569,13 @@ input {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px rgba(52, 42, 35, 0.07);
   border-color: rgba(74, 64, 57, 0.22);
+}
+
+.radar-job-card:focus-within {
+  border-color: rgba(74, 64, 57, 0.28);
+  box-shadow:
+    0 0 0 3px rgba(179, 106, 61, 0.16),
+    0 10px 20px rgba(52, 42, 35, 0.07);
 }
 
 .radar-job-card.is-bookmarked {
@@ -561,6 +595,11 @@ input {
 
 :root[data-theme="dark"] .radar-job-card:hover {
   border-color: rgba(238, 225, 213, 0.16);
+}
+
+:root[data-theme="dark"] .radar-job-card:focus-within {
+  border-color: rgba(238, 225, 213, 0.24);
+  box-shadow: 0 0 0 3px rgba(226, 159, 117, 0.16);
 }
 
 :root[data-theme="dark"] .radar-job-card.is-bookmarked {
@@ -626,6 +665,13 @@ input {
   font-size: 0.8rem;
   line-height: 1;
   white-space: nowrap;
+}
+
+.radar-job-card .radar-chip--source,
+.radar-job-card .radar-source-pill,
+.radar-job-card .radar-bookmark-button {
+  position: relative;
+  z-index: 3;
 }
 
 .radar-bookmark-button,
@@ -1069,6 +1115,12 @@ input {
 
   .radar-toolbar__actions {
     justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-primary-action.is-loading .radar-button-icon.is-spinning {
+    animation-duration: 1.6s;
   }
 }
 

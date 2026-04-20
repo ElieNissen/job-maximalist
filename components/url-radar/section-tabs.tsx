@@ -7,8 +7,8 @@ function SlidersIcon() {
   return <HugeiconsIcon icon={SlidersHorizontalIcon} size={16} strokeWidth={2} className="radar-button-icon" />;
 }
 
-function RefreshIcon() {
-  return <HugeiconsIcon icon={Refresh01Icon} size={16} strokeWidth={2} className="radar-button-icon" />;
+function RefreshIcon({ loading }: { loading: boolean }) {
+  return <HugeiconsIcon icon={Refresh01Icon} size={16} strokeWidth={2} className={`radar-button-icon${loading ? " is-spinning" : ""}`} />;
 }
 
 function ThemeIcon({ dark }: { dark: boolean }) {
@@ -84,8 +84,13 @@ export function SectionTabs({
           active={openUtilitySection === "settings"}
           onClick={() => onToggleUtilitySection("settings")}
         />
-        <button type="button" className="radar-primary-action radar-primary-action--small" onClick={onRefresh} disabled={loading}>
-          <RefreshIcon />
+        <button
+          type="button"
+          className={`radar-primary-action radar-primary-action--small${loading ? " is-loading" : ""}`}
+          onClick={onRefresh}
+          disabled={loading}
+        >
+          <RefreshIcon loading={loading} />
           {loading ? "Actualisation..." : "Actualiser"}
         </button>
       </div>

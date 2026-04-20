@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Bookmark02Icon,
@@ -139,30 +139,46 @@ type JobCardProps = {
 
 export function JobCard({ cluster, showExcludedReason = false, onOpenCluster, onToggleSaved }: JobCardProps) {
   const primaryUrl = cluster.sources[0]?.url ?? "#";
+  const canOpenPrimaryUrl = Boolean(primaryUrl && primaryUrl !== "#");
   const metaItems = buildMetaItems(cluster);
   const reasonItems = buildReasonItems(cluster);
   const displayTitle = compactTitle(cluster.title);
 
-  const openPrimaryUrl = () => {
-    if (!primaryUrl || primaryUrl === "#") return;
+  const markClusterOpened = () => {
+    if (!canOpenPrimaryUrl) return;
     onOpenCluster(cluster);
-    window.open(primaryUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleCardLinkClick = () => {
+    markClusterOpened();
+  };
+
+  const handleCardLinkAuxClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.button !== 1) return;
+    markClusterOpened();
+  };
+
+  const handleCardLinkKeyDown = (event: KeyboardEvent<HTMLAnchorElement>) => {
+    if (event.key !== " ") return;
+    event.preventDefault();
+    event.currentTarget.click();
   };
 
   return (
-    <article
-      className={`radar-job-card${cluster.saved ? " is-bookmarked" : ""}${showExcludedReason ? " is-excluded" : ""}`}
-      role="link"
-      tabIndex={0}
-      aria-label={`Ouvrir ${displayTitle}`}
-      onClick={openPrimaryUrl}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openPrimaryUrl();
-        }
-      }}
-    >
+    <article className={`radar-job-card${cluster.saved ? " is-bookmarked" : ""}${showExcludedReason ? " is-excluded" : ""}`}>
+      {canOpenPrimaryUrl ? (
+        <a
+          href={primaryUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Ouvrir ${displayTitle}`}
+          className="radar-job-card__overlay-link"
+          onClick={handleCardLinkClick}
+          onAuxClick={handleCardLinkAuxClick}
+          onKeyDown={handleCardLinkKeyDown}
+        />
+      ) : null}
+
       <div className="radar-job-card__topline">
         <div className="radar-job-card__pills">
           {cluster.sources.map((sourceItem) => (
