@@ -2152,6 +2152,11 @@ function migrateJob(job: any, filters?: JobSearchFilters): UrlRadarJob {
   const filterResult = shouldReclassify
     ? matchesFilters(normalizedForFilters, filters ?? cloneUrlRadarFilters(URL_RADAR_DEFAULT_FILTERS))
     : null;
+  const fallbackMatchedKeywords = Array.isArray(job.matchedKeywords) ? job.matchedKeywords.map(String) : [];
+  const fallbackExcludedReason = typeof job.excludedReason === "string" || job.excludedReason === null ? job.excludedReason : null;
+  const fallbackExcludedKeywords = Array.isArray(job.excludedKeywords)
+    ? job.excludedKeywords.filter((keyword: unknown): keyword is string => typeof keyword === "string" && keyword.trim().length > 0)
+    : [];
 
   return {
     id: String(job.id),
@@ -2166,15 +2171,9 @@ function migrateJob(job: any, filters?: JobSearchFilters): UrlRadarJob {
     firstSeenAt,
     lastSeenAt,
     scrapedAt: lastSeenAt,
-    matchedKeywords: filterResult?.matchedKeywords ?? (Array.isArray(job.matchedKeywords) ? job.matchedKeywords.map(String) : []),
-    excludedReason:
-      filterResult?.excludedReason ??
-      (typeof job.excludedReason === "string" || job.excludedReason === null ? job.excludedReason : null),
-    excludedKeywords:
-      filterResult?.excludedKeywords ??
-      (Array.isArray(job.excludedKeywords)
-        ? job.excludedKeywords.filter((keyword: unknown): keyword is string => typeof keyword === "string" && keyword.trim().length > 0)
-        : []),
+    matchedKeywords: filterResult ? filterResult.matchedKeywords : fallbackMatchedKeywords,
+    excludedReason: filterResult ? filterResult.excludedReason : fallbackExcludedReason,
+    excludedKeywords: filterResult ? filterResult.excludedKeywords : fallbackExcludedKeywords,
     viewed: Boolean(job.viewed),
     saved: Boolean(job.saved),
     experienceHint: job.experienceHint ?? null,
