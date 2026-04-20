@@ -1,14 +1,72 @@
-﻿import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Bookmark02Icon,
+  BookmarkCheck02Icon,
+  Clock01Icon,
+  ContractsIcon,
+  FilterRemoveIcon,
+  MapPinXIcon,
+  PowerOffIcon,
+  SearchRemoveIcon
+} from "@hugeicons/core-free-icons";
 import type { JobCluster } from "@/components/url-radar/types";
 import { sourceColorFromUrl, sourceLabelFromUrl, sourceTextColorFromUrl } from "@/components/url-radar/utils";
 
-const EXCLUSION_REASON_META: Record<string, { label: string; code: string; tone: string }> = {
-  no_include_keyword_match: { label: "Titre hors cible", code: "T", tone: "title" },
-  excluded_keyword: { label: "Mot clé exclu", code: "X", tone: "keyword" },
-  location_mismatch: { label: "Lieu hors zone", code: "L", tone: "location" },
-  contract_type_mismatch: { label: "Contrat hors cible", code: "C", tone: "contract" },
-  source_mismatch: { label: "Source désactivée", code: "S", tone: "generic" },
-  posted_too_old: { label: "Trop ancienne", code: "D", tone: "generic" }
+type ReasonMeta = { label: string; code: string; tone: string; icon: ReactNode };
+
+function buildIcon(icon: unknown, size: number, className?: string): ReactNode {
+  return <HugeiconsIcon icon={icon as never} size={size} strokeWidth={2} className={className} />;
+}
+
+function buildReasonIcon(icon: unknown): ReactNode {
+  return buildIcon(icon, 12);
+}
+
+const GENERIC_REASON_META: ReasonMeta = {
+  label: "Raison inconnue",
+  code: "generic",
+  tone: "generic",
+  icon: buildReasonIcon(PowerOffIcon)
+};
+
+const EXCLUSION_REASON_META: Record<string, ReasonMeta> = {
+  no_include_keyword_match: {
+    label: "Titre hors cible",
+    code: "title",
+    tone: "title",
+    icon: buildReasonIcon(SearchRemoveIcon)
+  },
+  excluded_keyword: {
+    label: "Mot clé exclu",
+    code: "keyword",
+    tone: "keyword",
+    icon: buildReasonIcon(FilterRemoveIcon)
+  },
+  location_mismatch: {
+    label: "Lieu hors zone",
+    code: "location",
+    tone: "location",
+    icon: buildReasonIcon(MapPinXIcon)
+  },
+  contract_type_mismatch: {
+    label: "Contrat hors cible",
+    code: "contract",
+    tone: "contract",
+    icon: buildReasonIcon(ContractsIcon)
+  },
+  source_mismatch: {
+    label: "Source désactivée",
+    code: "source",
+    tone: "generic",
+    icon: buildReasonIcon(PowerOffIcon)
+  },
+  posted_too_old: {
+    label: "Trop ancienne",
+    code: "stale",
+    tone: "generic",
+    icon: buildReasonIcon(Clock01Icon)
+  }
 };
 
 function formatCompactDate(value: string): string {
@@ -55,7 +113,7 @@ function buildExcludedKeywordLabel(keywords: string[]): string {
   return keywords.length === 1 ? `Contient le mot ${keywords[0]}` : `Contient les mots ${keywords.join(", ")}`;
 }
 
-function buildReasonItems(cluster: JobCluster): Array<{ label: string; code: string; tone: string }> {
+function buildReasonItems(cluster: JobCluster): Array<{ label: string; code: string; tone: string; icon: ReactNode }> {
   return cluster.excludedReasons.map((reason) => {
     if (reason === "excluded_keyword") {
       return {
@@ -64,22 +122,12 @@ function buildReasonItems(cluster: JobCluster): Array<{ label: string; code: str
       };
     }
 
-    return EXCLUSION_REASON_META[reason] ?? { label: reason.replace(/_/g, " "), code: "?", tone: "generic" };
+    return EXCLUSION_REASON_META[reason] ?? { ...GENERIC_REASON_META, label: reason.replace(/_/g, " ") };
   });
 }
 
 function BookmarkIcon({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="radar-bookmark-icon">
-      <path
-        d="M7 4.75h10a1 1 0 0 1 1 1V20l-6-3.7L6 20V5.75a1 1 0 0 1 1-1Z"
-        fill={active ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <>{buildIcon(active ? BookmarkCheck02Icon : Bookmark02Icon, 18, "radar-bookmark-icon")}</>;
 }
 
 type JobCardProps = {
@@ -170,7 +218,7 @@ export function JobCard({ cluster, showExcludedReason = false, onOpenCluster, on
         {showExcludedReason
           ? reasonItems.map((reason) => (
               <span key={`${cluster.key}-${reason.code}-${reason.label}`} className={`radar-reason-chip radar-reason-chip--${reason.tone}`}>
-                <span className="radar-reason-chip__icon">{reason.code}</span>
+                <span className="radar-reason-chip__icon">{reason.icon}</span>
                 <span>{reason.label}</span>
               </span>
             ))

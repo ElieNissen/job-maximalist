@@ -1,46 +1,18 @@
 ﻿import type { ReactNode } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Moon02Icon, Refresh01Icon, SlidersHorizontalIcon, Sun03Icon } from "@hugeicons/core-free-icons";
 import type { MainTab, UtilitySection } from "@/components/url-radar/types";
 
 function SlidersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="radar-button-icon">
-      <path
-        d="M5 7h8m3 0h3M5 17h3m3 0h8M13 7a2 2 0 1 0 0 .01M8 17a2 2 0 1 0 0 .01"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+  return <HugeiconsIcon icon={SlidersHorizontalIcon} size={16} strokeWidth={2} className="radar-button-icon" />;
 }
 
 function RefreshIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="radar-button-icon">
-      <path
-        d="M19 6.5V11h-4.5m-4 6.5A6.5 6.5 0 1 1 18.5 9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <HugeiconsIcon icon={Refresh01Icon} size={16} strokeWidth={2} className="radar-button-icon" />;
 }
 
 function ThemeIcon({ dark }: { dark: boolean }) {
-  return dark ? (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="radar-button-icon">
-      <path d="M20 12.2A8.2 8.2 0 1 1 11.8 4 6.7 6.7 0 0 0 20 12.2Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-    </svg>
-  ) : (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="radar-button-icon">
-      <circle cx="12" cy="12" r="4.1" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M12 2.8v2.3M12 18.9v2.3M21.2 12h-2.3M5.1 12H2.8M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6 17 17M7 7 5.4 5.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
+  return <HugeiconsIcon icon={dark ? Moon02Icon : Sun03Icon} size={16} strokeWidth={2} className="radar-button-icon" />;
 }
 
 type SectionTabsProps = {

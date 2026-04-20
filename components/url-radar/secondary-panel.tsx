@@ -1,4 +1,6 @@
 ﻿import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, Layers02Icon } from "@hugeicons/core-free-icons";
 import { getHostFromUrl, getUrlSourceMeta } from "@/lib/url-radar-sources";
 import {
   cloneUrlRadarFilters,
@@ -90,25 +92,13 @@ function toggleExcludedKeywords(excluded: string[], keywords: readonly string[],
 }
 
 function LayersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="radar-dialog-icon">
-      <path
-        d="m12 5 6.8 3.8L12 12.6 5.2 8.8 12 5Zm0 6.8 6.8 3.8L12 19.4 5.2 15.6 12 11.8Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <HugeiconsIcon icon={Layers02Icon} size={16} strokeWidth={2} className="radar-dialog-icon" />;
 }
 
 function CloseButton({ onClick }: { onClick: () => void }) {
   return (
     <button type="button" className="radar-close-button" onClick={onClick} aria-label="Fermer">
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="radar-button-icon">
-        <path d="m7 7 10 10M17 7 7 17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
+      <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} className="radar-button-icon" />
     </button>
   );
 }

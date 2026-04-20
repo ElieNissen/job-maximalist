@@ -712,10 +712,9 @@ input {
   justify-content: center;
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.75);
-  font-size: 0.72rem;
-  font-weight: 700;
 }
 
 .radar-reason-chip--title {
