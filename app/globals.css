@@ -265,6 +265,8 @@ input {
 }
 
 :root[data-theme="dark"] .radar-chip {
+  background: var(--surface-soft);
+  border-color: rgba(238, 225, 213, 0.1);
   box-shadow: none;
 }
 
@@ -584,7 +586,7 @@ input {
 }
 
 :root[data-theme="dark"] .radar-job-card {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, white 8%) 0%, var(--surface) 100%);
+  background: var(--surface);
   border-color: rgba(238, 225, 213, 0.08);
   box-shadow: none;
 }
