@@ -2,8 +2,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Job Radar Design",
-  description: "Agrégateur local d'offres UX/UI"
+  title: "Job Maximalist",
+  description: "Agregateur local-first d'offres et de missions multi-sources"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -13,4 +13,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
