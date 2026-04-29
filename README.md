@@ -9,14 +9,30 @@ Un tableau de bord d'offres de missions/jobs qui centralise tout, donne un contr
 - envoie une notification quand une offre correspondant aux critères est postée sur l'un des sites (intervalle de rafraîchissement modifiable) et différencie les nouvelles offres de celles déjà détectées
 - dédoublonnage des offres présentes sur plusieurs sources
 - interfaces diagnostics : consultation des offres refusées pour exclusion de mots-clés/localisation/etc, sources cassées/bloquées...
-  
+
+## Interface
+
+L'application expose un flux principal: `URL Radar`.
+
+Dans l'interface, on retrouve notamment:
+
+- un switch `Offres / Exclues`
+- des tags de source pour filtrer visuellement les clusters d'offres
+- un panneau `Reglages` avec trois zones:
+  - `URLs`: gestion des URLs suivies
+  - `Sources`: diagnostics par URL/source suivie
+  - `Filtres`: mots-cles inclus/exclus, localisation, contrats, anciennete
+- un suivi local des statuts `vu` / `sauvegarde`
+- des notifications navigateur locales quand de nouvelles offres sont detectees et que la permission a ete accordee
+
 ## Stack
 
-- Next.js (App Router) + TypeScript
+- Next.js 15 (App Router) + TypeScript
 - Prisma + SQLite
 - node-cron
 - Playwright
 - Vitest
+- Hugeicons
 
 ## Lancement en local
 
@@ -30,45 +46,51 @@ npm run dev
 
 Puis ouvrir [http://localhost:3000](http://localhost:3000)
 
-Sur Windows, tu peux aussi lancer :
+Sur Windows, tu peux aussi lancer:
 
 ```bash
 start-app.bat
 ```
 
-## Configuration
+## Configuration et persistance locale
 
-L'application fonctionne en priorité avec une configuration locale persistée :
+L'application fonctionne en priorite avec une logique locale-first:
 
-- sources d'offres
-- cadence de rafraîchissement
-- filtres de mots-clés, localisations, contrats et sources
+- les URLs suivies sont stockees localement
+- les filtres sont stockes localement
+- l'historique des URLs retirees est stocke localement
+- les statuts d'offre (`viewed`, `saved`) sont stockes localement
+- les offres detectees et les runs de refresh sont persistés via SQLite/Prisma sur la machine
 
-Une partie de cette configuration est modifiable directement dans l'interface via `Réglages`.
+Les filtres exposes dans l'UI sont:
 
-## API principale
+- mots-cles a inclure
+- mots-cles a exclure
+- localisations
+- types de contrat
+- anciennete maximum optionnelle
+
+## API
+
+Le front de l'application consomme uniquement les routes suivantes:
 
 - `GET /api/health`
-- `GET /api/jobs`
-- `GET /api/jobs/search`
-- `POST /api/jobs/refresh`
-- `PATCH /api/jobs/:id/status`
 - `GET /api/url-radar/config`
 - `PUT /api/url-radar/config`
 - `GET /api/url-radar/jobs`
+- `PATCH /api/url-radar/jobs/:id/status`
+- `GET /api/url-radar/refresh`
 - `POST /api/url-radar/refresh`
 - `GET /api/url-radar/status`
 
+Route de diagnostic optionnelle:
+
+- `GET /api/url-radar/cloudflare-test`
+
 ## Notes
 
-- le projet est pensé pour un usage local d'abord
-- certaines sources peuvent être limitées par l'anti-bot ou par leurs conditions d'accès
-- les données runtime locales ne sont pas destinées à être versionnées par défaut
-
-## Known limitations
-
-- certaines plateformes bloquent ou limitent le scraping public selon la fréquence, la session ou l'adresse IP
-- selon la source, la qualité d'extraction peut varier si le site change sa structure HTML ou son rendu JavaScript
-- toutes les métadonnées ne sont pas toujours disponibles de manière fiable sur toutes les plateformes
-- les diagnostics de source aident à comprendre les échecs, mais ne garantissent pas qu'une plateforme restera exploitable dans le temps
-- l'application privilégie un usage local avec persistance de données sur la machine, pas une architecture multi-utilisateur
+- le projet est pense pour un usage local d'abord, pas pour une architecture multi-utilisateur
+- certaines sources peuvent etre limitees par l'anti-bot, Cloudflare, la session ou l'adresse IP
+- selon les plateformes, la qualite d'extraction peut varier si le HTML ou le rendu JavaScript change
+- les diagnostics de source aident a comprendre les echecs, mais ne garantissent pas qu'une source restera exploitable dans le temps
+- les donnees runtime locales ne sont pas destinees a etre versionnees par defaut
