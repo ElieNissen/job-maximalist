@@ -1,11 +1,6 @@
-import type { JobSearchFilters, JobSource } from "@/lib/types";
+import type { JobSearchFilters } from "@/lib/types";
 
 export type EditableContractType = "CDI" | "CDD";
-
-export type UrlRadarSourceChoice = {
-  value: JobSource;
-  label: string;
-};
 
 export type UrlRadarPostedSinceChoice = {
   value: number | null;
@@ -41,6 +36,7 @@ export const URL_RADAR_DEFAULT_FILTERS: JobSearchFilters = {
   ],
   locations: ["Ile-de-France", "Paris"],
   contractTypes: ["CDI", "CDD"],
+  // Preserved in config for backward compatibility, but URL Radar no longer exposes a source filter.
   sources: [
     "linkedin",
     "wttj",
@@ -54,21 +50,6 @@ export const URL_RADAR_DEFAULT_FILTERS: JobSearchFilters = {
   // URL Radar does not currently enforce age by default. Keep it disabled to preserve results.
   postedSinceHours: undefined
 };
-
-export const URL_RADAR_SOURCE_CHOICES: UrlRadarSourceChoice[] = [
-  { value: "linkedin", label: "LinkedIn" },
-  { value: "wttj", label: "WTTJ" },
-  { value: "indeed", label: "Indeed" },
-  { value: "hellowork", label: "Hellowork" },
-  { value: "service_public", label: "Service Public" },
-  { value: "hiring_cafe", label: "Hiring Cafe" },
-  { value: "licorne_society", label: "Licorne Society" },
-  { value: "career_sites", label: "Career Sites" },
-  { value: "greenhouse", label: "Greenhouse" },
-  { value: "lever", label: "Lever" },
-  { value: "smartrecruiters", label: "SmartRecruiters" },
-  { value: "politepol", label: "Politepol" }
-];
 
 export const URL_RADAR_CONTRACT_CHOICES: EditableContractType[] = ["CDI", "CDD"];
 
@@ -87,7 +68,6 @@ export const URL_RADAR_TOGGLE_GROUPS = {
   internships: ["intern", "internship", "stage", "stagiaire", "alternance", "apprentice", "apprentissage"]
 } as const;
 
-const JOB_SOURCE_VALUES = new Set<JobSource>(URL_RADAR_SOURCE_CHOICES.map((choice) => choice.value));
 const CONTRACT_VALUES = new Set<EditableContractType>(URL_RADAR_CONTRACT_CHOICES);
 
 function normalizeKey(value: string): string {
@@ -113,20 +93,9 @@ function sanitizeStringArray(input: unknown, fallback: string[]): string[] {
   return cleaned;
 }
 
-function sanitizeSources(input: unknown): JobSource[] {
-  if (!Array.isArray(input)) return [...URL_RADAR_DEFAULT_FILTERS.sources];
-
-  const seen = new Set<JobSource>();
-  const cleaned: JobSource[] = [];
-
-  for (const item of input) {
-    const value = String(item ?? "") as JobSource;
-    if (!JOB_SOURCE_VALUES.has(value) || seen.has(value)) continue;
-    seen.add(value);
-    cleaned.push(value);
-  }
-
-  return cleaned;
+function sanitizeSources(input: unknown): JobSearchFilters["sources"] {
+  void input;
+  return [...URL_RADAR_DEFAULT_FILTERS.sources];
 }
 
 function sanitizeContractTypes(input: unknown): EditableContractType[] {

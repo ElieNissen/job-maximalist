@@ -56,8 +56,6 @@ const STRICT_TITLE_PATTERNS = [
   /\bix\s+designer\b/
 ];
 
-const UNKNOWN_LOCATION_TOKENS = new Set(["", "france", "fr", "remote", "europe"]);
-
 const TITLE_TOKEN_ALIASES: Record<string, string> = {
   designer: "design",
   design: "design",
@@ -185,10 +183,6 @@ export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): {
 } {
   const isVieJob = /businessfrance\.fr/i.test(job.url);
 
-  if (!filters.sources.includes(job.source)) {
-    return { match: false, matchedKeywords: [], excludedReason: "source_mismatch", excludedKeywords: [] };
-  }
-
   const titleNormalized = normalizeForMatch(job.title);
   const titleLoose = normalizeText(job.title);
   const location = normalizeLocation(job.location);
@@ -207,11 +201,8 @@ export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): {
     location.includes(normalizeLocation(candidate))
   );
   const isLikelyIDF = IDF_LOCATIONS.some((idf) => location.includes(idf));
-  const isUnknownPolitepolLocation =
-    job.source === "politepol" &&
-    Array.from(UNKNOWN_LOCATION_TOKENS).some((token) => location === token || location.includes(`${token} `));
 
-  if (!isVieJob && !hasLocationMatch && !isLikelyIDF && !isUnknownPolitepolLocation) {
+  if (!isVieJob && !hasLocationMatch && !isLikelyIDF) {
     return { match: false, matchedKeywords, excludedReason: "location_mismatch", excludedKeywords: [] };
   }
 

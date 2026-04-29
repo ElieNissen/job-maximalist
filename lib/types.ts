@@ -6,13 +6,7 @@ export type JobSource =
   | "service_public"
   | "hiring_cafe"
   | "licorne_society"
-  | "career_sites"
-  | "greenhouse"
-  | "lever"
-  | "smartrecruiters"
-  | "politepol";
-
-export type AtsSource = "greenhouse" | "lever" | "smartrecruiters";
+  | "career_sites";
 
 export type ContractType = "CDI" | "CDD" | "OTHER";
 
@@ -62,28 +56,4 @@ export interface ConnectorHealth {
   lastStatus: "SUCCESS" | "PARTIAL" | "FAILED" | "NEVER";
   lastError: string | null;
   lastRunAt: string | null;
-}
-
-export interface AtsConfig {
-  enabled: boolean;
-  intervalMinutes: number;
-  sources: AtsSource[];
-  targets: string[];
-  autoDiscoveryEnabled: boolean;
-  discoveryMaxTargetsPerSource: number;
-  discordWebhookUrl?: string;
-}
-
-export interface AtsRunSummary {
-  startedAt: string;
-  endedAt: string | null;
-  status: "RUNNING" | "SUCCESS" | "PARTIAL" | "FAILED";
-  newCount: number;
-  errors: string[];
-}
-
-export interface PolitepolConfig {
-  enabled: boolean;
-  intervalMinutes: number;
-  feedUrls: string[];
 }

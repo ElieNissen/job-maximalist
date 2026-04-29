@@ -8,7 +8,6 @@ import {
   URL_RADAR_CONTRACT_CHOICES,
   URL_RADAR_DEFAULT_FILTERS,
   URL_RADAR_POSTED_SINCE_CHOICES,
-  URL_RADAR_SOURCE_CHOICES,
   URL_RADAR_TOGGLE_GROUPS
 } from "@/lib/url-radar-filters";
 import { matchesFilters } from "@/lib/filtering";
@@ -466,32 +465,6 @@ function FiltersPanel({
                     contractTypes: checked
                       ? [...prev.filters.contractTypes, contractType].filter((value, index, array) => array.indexOf(value) === index)
                       : prev.filters.contractTypes.filter((value) => value !== contractType)
-                  }
-                }))
-              }
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="radar-filter-group">
-        <div className="radar-filter-group__header">
-          <strong>Sources</strong>
-        </div>
-        <div className="radar-filter-group__checks radar-filter-group__checks--grid">
-          {URL_RADAR_SOURCE_CHOICES.map((sourceChoice) => (
-            <ToggleRow
-              key={sourceChoice.value}
-              label={sourceChoice.label}
-              checked={filters.sources.includes(sourceChoice.value)}
-              onChange={(checked) =>
-                setDraftConfig((prev) => ({
-                  ...prev,
-                  filters: {
-                    ...prev.filters,
-                    sources: checked
-                      ? [...prev.filters.sources, sourceChoice.value].filter((value, index, array) => array.indexOf(value) === index)
-                      : prev.filters.sources.filter((value) => value !== sourceChoice.value)
                   }
                 }))
               }

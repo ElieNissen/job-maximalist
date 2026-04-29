@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { DEFAULT_FILTERS } from "@/lib/config/defaults";
 import { getSchedulerStatus, initScheduler } from "@/lib/scheduler";
 import { prisma } from "@/lib/prisma";
 
@@ -12,7 +11,7 @@ export async function GET() {
   return NextResponse.json({
     status: "ok",
     scheduler: getSchedulerStatus(),
-    connectors: [...DEFAULT_FILTERS.sources, "politepol", "url_radar"],
+    connectors: ["url_radar"],
     lastRun
   });
 }
