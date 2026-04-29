@@ -27,6 +27,7 @@
   --surface: #312b27;
   --surface-soft: #24201d;
   --surface-muted: #1e1a18;
+  --surface-raised: color-mix(in srgb, var(--surface) 92%, white 8%);
   --accent: #d7b69f;
   --accent-soft: rgba(215, 182, 159, 0.12);
   --muted: #b5aaa0;
@@ -178,6 +179,15 @@ input {
 
 .radar-tab-button,
 .radar-utility-button,
+.radar-primary-action,
+.radar-inline-button,
+.radar-settings-tab,
+.radar-icon-toggle {
+  border-radius: var(--radius-sm);
+}
+
+.radar-tab-button,
+.radar-utility-button,
 .radar-chip,
 .radar-inline-button,
 .radar-primary-action,
@@ -204,7 +214,7 @@ input {
 
 :root[data-theme="dark"] .radar-tab-row {
   background: var(--surface-soft);
-  border-color: rgba(238, 225, 213, 0.12);
+  border-color: rgba(238, 225, 213, 0.14);
   box-shadow: none;
 }
 
@@ -233,16 +243,16 @@ input {
 }
 
 :root[data-theme="dark"] .radar-tab-button.is-active {
-  background: var(--surface);
-  border-color: rgba(238, 225, 213, 0.08);
-  box-shadow: none;
+  background: var(--surface-raised);
+  border-color: rgba(215, 182, 159, 0.24);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .radar-utility-button,
 .radar-icon-toggle,
 .radar-settings-tab {
   padding: 9px 14px;
-  border-radius: 14px;
   background: color-mix(in srgb, var(--surface-soft) 78%, white 22%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
@@ -253,21 +263,23 @@ input {
 :root[data-theme="dark"] .radar-inline-button,
 :root[data-theme="dark"] .radar-icon-toggle,
 :root[data-theme="dark"] .radar-settings-tab {
-  background: var(--surface-soft);
-  border-color: rgba(238, 225, 213, 0.1);
-  box-shadow: none;
+  background: var(--surface);
+  border-color: rgba(238, 225, 213, 0.12);
+  color: var(--muted-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 :root[data-theme="dark"] .radar-chip.is-active.is-neutral {
-  background: color-mix(in srgb, var(--surface) 88%, black 12%);
-  border-color: rgba(238, 225, 213, 0.12);
-  color: var(--muted-strong);
+  background: var(--surface-raised);
+  border-color: rgba(215, 182, 159, 0.28);
+  color: var(--text);
 }
 
 :root[data-theme="dark"] .radar-chip {
-  background: var(--surface-soft);
-  border-color: rgba(238, 225, 213, 0.1);
-  box-shadow: none;
+  background: var(--surface);
+  border-color: rgba(238, 225, 213, 0.14);
+  color: var(--muted-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .radar-icon-toggle {
@@ -282,6 +294,40 @@ input {
   background: var(--accent-soft);
   border-color: rgba(91, 67, 55, 0.18);
   color: var(--text);
+}
+
+:root[data-theme="dark"] .radar-tab-button:not(.is-active) {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .radar-chip:not(.is-active):hover,
+:root[data-theme="dark"] .radar-utility-button:not(.is-active):hover,
+:root[data-theme="dark"] .radar-inline-button:hover,
+:root[data-theme="dark"] .radar-icon-toggle:hover,
+:root[data-theme="dark"] .radar-settings-tab:not(.is-active):hover,
+:root[data-theme="dark"] .radar-bookmark-button:not(.is-active):hover,
+:root[data-theme="dark"] .radar-close-button:hover {
+  background: color-mix(in srgb, var(--surface) 96%, white 4%);
+  border-color: rgba(238, 225, 213, 0.16);
+  color: var(--muted-strong);
+}
+
+:root[data-theme="dark"] .radar-tab-button:not(.is-active):hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted-strong);
+}
+
+:root[data-theme="dark"] .radar-utility-button.is-active,
+:root[data-theme="dark"] .radar-settings-tab.is-active {
+  background: rgba(215, 182, 159, 0.14);
+  border-color: rgba(215, 182, 159, 0.3);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="dark"] .radar-chip.is-active.is-neutral {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .radar-chip {
@@ -512,6 +558,15 @@ input {
   background-repeat: repeat-x;
 }
 
+:root[data-theme="dark"] .radar-empty-state {
+  border-top-color: rgba(238, 225, 213, 0.14);
+}
+
+:root[data-theme="dark"] .radar-empty-state__callout::before,
+:root[data-theme="dark"] .radar-empty-state__callout::after {
+  background-image: linear-gradient(to right, rgba(238, 225, 213, 0.3) 33%, rgba(255, 255, 255, 0) 0%);
+}
+
 .radar-empty-state__bubble {
   display: inline-flex;
   align-items: center;
@@ -693,7 +748,7 @@ input {
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.92);
   color: var(--muted);
   box-shadow:
@@ -703,8 +758,9 @@ input {
 
 :root[data-theme="dark"] .radar-bookmark-button,
 :root[data-theme="dark"] .radar-close-button {
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: none;
+  background: var(--surface);
+  border-color: rgba(238, 225, 213, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .radar-bookmark-button.is-active {
