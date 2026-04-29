@@ -584,7 +584,7 @@ input {
 }
 
 :root[data-theme="dark"] .radar-job-card {
-  background: var(--surface);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, white 8%) 0%, var(--surface) 100%);
   border-color: rgba(238, 225, 213, 0.08);
   box-shadow: none;
 }
@@ -603,7 +603,7 @@ input {
 }
 
 :root[data-theme="dark"] .radar-job-card.is-bookmarked {
-  background: color-mix(in srgb, #2f7d4c 14%, var(--surface) 86%);
+  border-color: rgba(104, 168, 124, 0.22);
 }
 
 .radar-job-card.is-excluded {
@@ -611,7 +611,17 @@ input {
 }
 
 :root[data-theme="dark"] .radar-job-card.is-excluded {
-  background: color-mix(in srgb, #7d4a3a 10%, var(--surface) 90%);
+  border-color: rgba(184, 132, 105, 0.2);
+}
+
+:root[data-theme="dark"] .radar-job-card.is-bookmarked:hover,
+:root[data-theme="dark"] .radar-job-card.is-bookmarked:focus-within {
+  border-color: rgba(124, 190, 145, 0.28);
+}
+
+:root[data-theme="dark"] .radar-job-card.is-excluded:hover,
+:root[data-theme="dark"] .radar-job-card.is-excluded:focus-within {
+  border-color: rgba(208, 156, 128, 0.24);
 }
 
 .radar-job-card__topline {
