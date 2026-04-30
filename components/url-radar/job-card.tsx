@@ -144,6 +144,11 @@ export function JobCard({ cluster, showExcludedReason = false, onOpenCluster, on
   const reasonItems = buildReasonItems(cluster);
   const displayTitle = compactTitle(cluster.title);
 
+  const stopCardLinkPropagation = (event: MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
   const markClusterOpened = () => {
     if (!canOpenPrimaryUrl) return;
     onOpenCluster(cluster);
@@ -206,8 +211,15 @@ export function JobCard({ cluster, showExcludedReason = false, onOpenCluster, on
           type="button"
           className={`radar-bookmark-button${cluster.saved ? " is-active" : ""}`}
           onClick={(event) => {
-            event.preventDefault();
+            stopCardLinkPropagation(event);
+            onToggleSaved(cluster);
+          }}
+          onMouseDown={(event) => {
             event.stopPropagation();
+          }}
+          onAuxClick={(event) => {
+            if (event.button !== 1) return;
+            stopCardLinkPropagation(event);
             onToggleSaved(cluster);
           }}
           aria-label={cluster.saved ? "Retirer le favori" : "Ajouter aux favoris"}

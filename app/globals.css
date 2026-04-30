@@ -696,7 +696,6 @@ input {
   justify-content: space-between;
   gap: 12px;
   position: relative;
-  z-index: 1;
 }
 
 .radar-source-pill,
