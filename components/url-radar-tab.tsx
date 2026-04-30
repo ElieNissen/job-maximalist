@@ -212,20 +212,37 @@ export default function UrlRadarTab() {
   );
 
   const updateClusterStatus = useCallback(async (cluster: JobCluster, viewed: boolean, saved: boolean) => {
-    await Promise.all(
-      cluster.ids.map((id) =>
-        fetch(`/api/url-radar/jobs/${id}/status`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ viewed, saved })
-        })
-      )
-    );
+    const clusterIds = new Set(cluster.ids);
+    const previousViewed = cluster.viewed;
+    const previousSaved = cluster.saved;
 
+    setError(null);
     setJobsData((prev) => ({
       ...prev,
-      items: prev.items.map((job) => (cluster.ids.includes(job.id) ? { ...job, viewed, saved } : job))
+      items: prev.items.map((job) => (clusterIds.has(job.id) ? { ...job, viewed, saved } : job))
     }));
+
+    try {
+      const responses = await Promise.all(
+        cluster.ids.map((id) =>
+          fetch(`/api/url-radar/jobs/${id}/status`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ viewed, saved })
+          })
+        )
+      );
+
+      if (responses.some((response) => !response.ok)) {
+        throw new Error("Status update failed");
+      }
+    } catch (cause) {
+      setJobsData((prev) => ({
+        ...prev,
+        items: prev.items.map((job) => (clusterIds.has(job.id) ? { ...job, viewed: previousViewed, saved: previousSaved } : job))
+      }));
+      setError(cause instanceof Error ? cause.message : "Status update failed");
+    }
   }, []);
 
   const markClusterOpened = useCallback(

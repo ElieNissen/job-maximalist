@@ -213,6 +213,7 @@ export function JobCard({ cluster, showExcludedReason = false, onOpenCluster, on
           onClick={(event) => {
             stopCardLinkPropagation(event);
             onToggleSaved(cluster);
+            event.currentTarget.blur();
           }}
           onMouseDown={(event) => {
             event.stopPropagation();
@@ -221,6 +222,7 @@ export function JobCard({ cluster, showExcludedReason = false, onOpenCluster, on
             if (event.button !== 1) return;
             stopCardLinkPropagation(event);
             onToggleSaved(cluster);
+            event.currentTarget.blur();
           }}
           aria-label={cluster.saved ? "Retirer le favori" : "Ajouter aux favoris"}
         >
