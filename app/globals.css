@@ -440,7 +440,7 @@ input {
 .radar-mini-stack,
 .radar-attempt-row,
 .radar-field span,
-.radar-checkbox-row span,
+.radar-checkbox-row__label,
 .radar-modal__subtitle,
 .radar-source-card__metrics,
 .radar-section-stamp {
@@ -861,17 +861,138 @@ input {
   color: #5a5148;
 }
 
-.radar-checkbox-row,
 .radar-field {
   display: grid;
   gap: 8px;
 }
 
 .radar-checkbox-row {
+  position: relative;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-soft) 84%, white 16%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 6px 12px rgba(52, 42, 35, 0.03);
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.radar-checkbox-row:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  background: color-mix(in srgb, var(--surface-soft) 76%, white 24%);
+}
+
+.radar-checkbox-row:focus-within {
+  border-color: var(--border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 6px 12px rgba(52, 42, 35, 0.03);
+}
+
+.radar-checkbox-row.is-checked {
+  border-color: rgba(91, 67, 55, 0.18);
+  background: rgba(91, 67, 55, 0.08);
+}
+
+.radar-checkbox-row__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radar-checkbox-row__control {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid rgba(74, 64, 57, 0.24);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.radar-checkbox-row__control::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 10px;
+  border-right: 2px solid var(--surface);
+  border-bottom: 2px solid var(--surface);
+  opacity: 0;
+  transform: translate(-50%, -58%) rotate(45deg) scale(0.72);
+  transform-origin: center;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.radar-checkbox-row__input:focus-visible + .radar-checkbox-row__control {
+  outline: none;
+}
+
+.radar-checkbox-row__label {
+  color: var(--muted-strong);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.radar-checkbox-row.is-checked .radar-checkbox-row__label {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.radar-checkbox-row.is-checked .radar-checkbox-row__control {
+  border-color: transparent;
+  background: var(--accent);
+  box-shadow: none;
+}
+
+.radar-checkbox-row.is-checked .radar-checkbox-row__control::after {
+  opacity: 1;
+  transform: translate(-50%, -58%) rotate(45deg) scale(1);
+}
+
+:root[data-theme="dark"] .radar-checkbox-row {
+  border-color: rgba(238, 225, 213, 0.12);
+  background: var(--surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="dark"] .radar-checkbox-row:hover {
+  border-color: rgba(238, 225, 213, 0.18);
+  background: var(--surface-raised);
+}
+
+:root[data-theme="dark"] .radar-checkbox-row:focus-within {
+  border-color: rgba(238, 225, 213, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="dark"] .radar-checkbox-row.is-checked {
+  border-color: rgba(215, 182, 159, 0.22);
+  background: var(--surface-raised);
+}
+
+:root[data-theme="dark"] .radar-checkbox-row__control {
+  border-color: rgba(238, 225, 213, 0.24);
+  background: color-mix(in srgb, var(--surface) 82%, white 18%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme="dark"] .radar-checkbox-row.is-checked .radar-checkbox-row__control {
+  border-color: rgba(215, 182, 159, 0.18);
+  background: color-mix(in srgb, var(--accent) 88%, white 12%);
 }
 
 .radar-field input,

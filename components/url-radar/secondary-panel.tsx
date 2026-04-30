@@ -280,9 +280,10 @@ function ToggleRow({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="radar-checkbox-row">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-      <span>{label}</span>
+    <label className={`radar-checkbox-row${checked ? " is-checked" : ""}`}>
+      <input className="radar-checkbox-row__input" type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+      <span className="radar-checkbox-row__control" aria-hidden="true" />
+      <span className="radar-checkbox-row__label">{label}</span>
     </label>
   );
 }
@@ -551,14 +552,7 @@ function UrlsSettingsPanel({ draftConfig, setDraftConfig }: { draftConfig: UrlRa
 
   return (
     <div className="radar-form-grid">
-      <label className="radar-checkbox-row">
-        <input
-          type="checkbox"
-          checked={draftConfig.enabled}
-          onChange={(event) => setDraftConfig((prev) => ({ ...prev, enabled: event.target.checked }))}
-        />
-        <span>Actualisation active</span>
-      </label>
+      <ToggleRow label="Actualisation active" checked={draftConfig.enabled} onChange={(checked) => setDraftConfig((prev) => ({ ...prev, enabled: checked }))} />
 
       <label className="radar-field">
         <span>Intervalle (minutes)</span>
