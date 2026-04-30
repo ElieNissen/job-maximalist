@@ -104,7 +104,7 @@ function CloseButton({ onClick }: { onClick: () => void }) {
 
 function SettingsTabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
-    <button type="button" className={`radar-settings-tab${active ? " is-active" : ""}`} onClick={onClick}>
+    <button type="button" className={`radar-tab-button radar-settings-tab-button${active ? " is-active" : ""}`} onClick={onClick}>
       {label}
     </button>
   );
@@ -644,7 +644,7 @@ export function SecondaryPanel({ openSection, onClose, config, jobs, status, sav
           <CloseButton onClick={onClose} />
         </div>
 
-        <div className="radar-settings-tabs">
+        <div className="radar-tab-row radar-settings-tabs">
           <SettingsTabButton label="URLs" active={settingsTab === "urls"} onClick={() => setSettingsTab("urls")} />
           <SettingsTabButton label="Diagnostic" active={settingsTab === "sources"} onClick={() => setSettingsTab("sources")} />
           <SettingsTabButton label="Filtres avancés" active={settingsTab === "filters"} onClick={() => setSettingsTab("filters")} />
