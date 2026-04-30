@@ -471,6 +471,67 @@ input {
   margin-bottom: 10px;
 }
 
+.radar-settings-tabs {
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-pill) + 4px);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-soft) 86%, white 14%) 0%, color-mix(in srgb, var(--surface-soft) 96%, white 4%) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 12px 22px rgba(52, 42, 35, 0.04);
+}
+
+:root[data-theme="dark"] .radar-settings-tabs {
+  background: var(--surface-soft);
+  border-color: rgba(238, 225, 213, 0.14);
+  box-shadow: none;
+}
+
+.radar-settings-tab {
+  min-width: 108px;
+  justify-content: center;
+  padding: 8px 12px;
+  border-color: transparent;
+  background: transparent;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.radar-settings-tab:hover {
+  transform: none;
+  color: var(--muted-strong);
+}
+
+.radar-settings-tab.is-active {
+  background: var(--surface);
+  border-color: rgba(74, 64, 57, 0.08);
+  color: var(--text);
+  box-shadow:
+    0 12px 24px rgba(78, 64, 52, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme="dark"] .radar-settings-tab {
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+}
+
+:root[data-theme="dark"] .radar-settings-tab:not(.is-active):hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted-strong);
+}
+
+:root[data-theme="dark"] .radar-settings-tab.is-active {
+  background: var(--surface-raised);
+  border-color: rgba(215, 182, 159, 0.24);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 .radar-list-stack {
   gap: 46px;
 }
@@ -1132,8 +1193,9 @@ input {
 .radar-modal__title {
   display: block;
   color: var(--text);
-  font-size: 1.06rem;
-  line-height: 1.2;
+  font-size: 1.22rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .radar-source-list {

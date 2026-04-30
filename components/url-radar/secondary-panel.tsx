@@ -627,7 +627,6 @@ export function SecondaryPanel({ openSection, onClose, config, jobs, status, sav
   }, [config, openSection]);
 
   const modalTitle = "Réglages";
-  const modalSubtitle = "Sources suivies, cadence, diagnostic et filtres du radar";
 
   const canSave = useMemo(() => !saving, [saving]);
 
@@ -640,7 +639,6 @@ export function SecondaryPanel({ openSection, onClose, config, jobs, status, sav
           <div className="radar-modal__title-wrap">
             <div>
               <strong className="radar-modal__title">{modalTitle}</strong>
-              <div className="radar-modal__subtitle">{modalSubtitle}</div>
             </div>
           </div>
           <CloseButton onClick={onClose} />
@@ -648,8 +646,8 @@ export function SecondaryPanel({ openSection, onClose, config, jobs, status, sav
 
         <div className="radar-settings-tabs">
           <SettingsTabButton label="URLs" active={settingsTab === "urls"} onClick={() => setSettingsTab("urls")} />
-          <SettingsTabButton label="Sources" active={settingsTab === "sources"} onClick={() => setSettingsTab("sources")} />
-          <SettingsTabButton label="Filtres" active={settingsTab === "filters"} onClick={() => setSettingsTab("filters")} />
+          <SettingsTabButton label="Diagnostic" active={settingsTab === "sources"} onClick={() => setSettingsTab("sources")} />
+          <SettingsTabButton label="Filtres avancés" active={settingsTab === "filters"} onClick={() => setSettingsTab("filters")} />
         </div>
 
         {settingsTab === "urls" ? (
