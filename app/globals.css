@@ -580,7 +580,7 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
   margin-inline: 18px;
   padding: 14px 20px;

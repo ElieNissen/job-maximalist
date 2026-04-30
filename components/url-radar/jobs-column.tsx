@@ -18,9 +18,7 @@ function RefreshMeta({ stamp }: { stamp?: string | null }) {
 
   return (
     <span className="radar-refresh-meta">
-      <span className="radar-refresh-meta__separator" aria-hidden="true">
-        -
-      </span>
+      <span className="radar-refresh-meta__separator" aria-hidden="true" />
       <span className="radar-refresh-meta__text">Actualisé {stamp}</span>
     </span>
   );
