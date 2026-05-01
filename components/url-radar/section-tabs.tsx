@@ -70,10 +70,12 @@ export function MainTabSwitch({ currentTab, onChange }: MainTabSwitchProps) {
 }
 
 export function SectionTabs({ loading, onRefresh, openUtilitySection, onToggleUtilitySection, themeMode, onToggleTheme }: SectionTabsProps) {
+  const logoSrc = themeMode === "dark" ? "/job-maximalist-logo-dark.svg" : "/job-maximalist-logo.svg";
+
   return (
     <div className="radar-toolbar">
       <div className="radar-toolbar__brand">
-        <img src="/job-maximalist-logo.svg" alt="Job Maximalist" className="radar-toolbar__logo" />
+        <img src={logoSrc} alt="Job Maximalist" className="radar-toolbar__logo" />
       </div>
 
       <div className="radar-toolbar__actions">
