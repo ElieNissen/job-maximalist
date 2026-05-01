@@ -385,7 +385,7 @@ input {
   min-width: 154px;
   justify-content: center;
   padding: 9px 14px;
-  background: var(--accent);
+  background: #573321;
   border-color: transparent;
   color: #fff;
   font-weight: 700;
@@ -396,7 +396,8 @@ input {
 }
 
 :root[data-theme="dark"] .radar-primary-action {
-  color: #171514;
+  background: #573321;
+  color: #fff;
   box-shadow: none;
 }
 
