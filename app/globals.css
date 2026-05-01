@@ -481,7 +481,7 @@ input {
 
 .radar-primary-filters {
   display: grid;
-  gap: 12px;
+  gap: 24px;
   padding-top: 12px;
 }
 
