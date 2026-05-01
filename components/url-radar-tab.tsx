@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { JobsColumn } from "@/components/url-radar/jobs-column";
 import { SecondaryPanel } from "@/components/url-radar/secondary-panel";
-import { SectionTabs } from "@/components/url-radar/section-tabs";
+import { MainTabSwitch, SectionTabs } from "@/components/url-radar/section-tabs";
 import { SourceFilterBar } from "@/components/url-radar/source-filter-bar";
 import type {
   JobCluster,
@@ -317,8 +317,6 @@ export default function UrlRadarTab() {
       <div className="radar-navigation-band">
         <div className="radar-navigation-shell">
           <SectionTabs
-            currentTab={mainTab}
-            onChange={setMainTab}
             loading={loading}
             onRefresh={refreshNow}
             openUtilitySection={utilitySection}
@@ -340,12 +338,15 @@ export default function UrlRadarTab() {
       />
 
       <div className="radar-content-shell">
-        <SourceFilterBar
-          options={mainTab === "visible" ? visibleSourceOptions : excludedSourceOptions}
-          activeFilter={mainTab === "visible" ? visibleSourceFilter : excludedSourceFilter}
-          onChange={mainTab === "visible" ? setVisibleSourceFilter : setExcludedSourceFilter}
-          totalCount={mainTab === "visible" ? visibleClusters.length : excludedClusters.length}
-        />
+        <div className="radar-primary-filters">
+          <MainTabSwitch currentTab={mainTab} onChange={setMainTab} />
+          <SourceFilterBar
+            options={mainTab === "visible" ? visibleSourceOptions : excludedSourceOptions}
+            activeFilter={mainTab === "visible" ? visibleSourceFilter : excludedSourceFilter}
+            onChange={mainTab === "visible" ? setVisibleSourceFilter : setExcludedSourceFilter}
+            totalCount={mainTab === "visible" ? visibleClusters.length : excludedClusters.length}
+          />
+        </div>
 
         {error ? <div className="radar-inline-error radar-error-banner">Erreur: {error}</div> : null}
 

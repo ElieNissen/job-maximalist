@@ -146,6 +146,20 @@ input {
   gap: 14px 16px;
 }
 
+.radar-toolbar__brand {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  line-height: 0;
+}
+
+.radar-toolbar__logo {
+  display: block;
+  width: clamp(178px, 22vw, 221px);
+  max-width: 100%;
+  height: auto;
+}
+
 .radar-tab-row,
 .radar-toolbar__actions,
 .radar-chip-row,
@@ -461,8 +475,18 @@ input {
 }
 
 .radar-filter-strip {
-  padding: 12px 0 30px;
+  padding: 0 0 30px;
   background: transparent;
+}
+
+.radar-primary-filters {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.radar-main-tab-row {
+  align-self: start;
 }
 
 .radar-filter-strip__actions {

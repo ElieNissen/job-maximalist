@@ -16,14 +16,17 @@ function ThemeIcon({ dark }: { dark: boolean }) {
 }
 
 type SectionTabsProps = {
-  currentTab: MainTab;
-  onChange: (tab: MainTab) => void;
   loading: boolean;
   onRefresh: () => void;
   openUtilitySection: UtilitySection | null;
   onToggleUtilitySection: (section: UtilitySection) => void;
   themeMode: "light" | "dark";
   onToggleTheme: () => void;
+};
+
+type MainTabSwitchProps = {
+  currentTab: MainTab;
+  onChange: (tab: MainTab) => void;
 };
 
 function UtilityButton({
@@ -45,33 +48,32 @@ function UtilityButton({
   );
 }
 
-export function SectionTabs({
-  currentTab,
-  onChange,
-  loading,
-  onRefresh,
-  openUtilitySection,
-  onToggleUtilitySection,
-  themeMode,
-  onToggleTheme
-}: SectionTabsProps) {
+export function MainTabSwitch({ currentTab, onChange }: MainTabSwitchProps) {
+  return (
+    <div className="radar-tab-row radar-main-tab-row" role="tablist" aria-label="Sections du radar">
+      <button
+        type="button"
+        className={`radar-tab-button${currentTab === "visible" ? " is-active" : ""}`}
+        onClick={() => onChange("visible")}
+      >
+        <span>Offres</span>
+      </button>
+      <button
+        type="button"
+        className={`radar-tab-button${currentTab === "excluded" ? " is-active" : ""}`}
+        onClick={() => onChange("excluded")}
+      >
+        <span>Exclues</span>
+      </button>
+    </div>
+  );
+}
+
+export function SectionTabs({ loading, onRefresh, openUtilitySection, onToggleUtilitySection, themeMode, onToggleTheme }: SectionTabsProps) {
   return (
     <div className="radar-toolbar">
-      <div className="radar-tab-row" role="tablist" aria-label="Sections du radar">
-        <button
-          type="button"
-          className={`radar-tab-button${currentTab === "visible" ? " is-active" : ""}`}
-          onClick={() => onChange("visible")}
-        >
-          <span>Offres</span>
-        </button>
-        <button
-          type="button"
-          className={`radar-tab-button${currentTab === "excluded" ? " is-active" : ""}`}
-          onClick={() => onChange("excluded")}
-        >
-          <span>Exclues</span>
-        </button>
+      <div className="radar-toolbar__brand">
+        <img src="/job-maximalist-logo.svg" alt="Job Maximalist" className="radar-toolbar__logo" />
       </div>
 
       <div className="radar-toolbar__actions">
