@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Job Maximalist",
+  title: "JobMAXIMALIST",
   description: "Agregateur local-first d'offres et de missions multi-sources"
 };
 
