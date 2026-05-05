@@ -143,7 +143,7 @@ export default function UrlRadarTab() {
           nextJobs.lastRunId &&
           nextJobs.lastRunId !== lastNotifiedRunId.current
         ) {
-          new Notification("URL Radar", {
+          new Notification("JobMAXIMALIST - Nouvelles offres", {
             body: `${nextJobs.newSinceLastRefresh} nouvelles offres détectées.`
           });
           lastNotifiedRunId.current = nextJobs.lastRunId;
