@@ -18,12 +18,12 @@ Dans l'interface, on retrouve notamment :
 
 - un switch `Offres / Exclues`
 - des tags de source pour filtrer visuellement les clusters d'offres
-- un panneau `Reglages` avec trois sections :
-  - `URLs` pour les sources suivies
-  - `Diagnostic` pour l'etat des sources et du scraping
-  - `Filtres avances` pour les mots cles, la localisation, les contrats et l'anciennete
-- un suivi local des statuts `vu` / `sauvegarde`
-- des notifications navigateur locales quand de nouvelles offres correspondant aux filtres sont detectees
+- un panneau `Réglages` avec trois zones :
+  - `URLs` : gestion des URLs suivies
+  - `Diagnostic` : diagnostics par URL/source suivie
+  - `Filtres avancés` : mots-clés inclus/exclus, localisation, contrats, ancienneté
+- un suivi local des statuts `vu` / `sauvegardé`
+- des notifications navigateur locales quand de nouvelles offres correspondant aux filtres sont détectées
 
 ## Stack
 
@@ -34,11 +34,45 @@ Dans l'interface, on retrouve notamment :
 - Vitest
 - Hugeicons
 
-## Developpement local
+## Lancer l'application
+
+### Windows
+
+Le plus simple est d'utiliser les scripts fournis à la racine du projet.
+
+Pour le développement avec mise à jour automatique :
+
+1. double-cliquer sur `start-dev.bat`
+2. laisser la fenêtre ouverte
+3. attendre l'ouverture automatique du navigateur sur [http://localhost:3000](http://localhost:3000)
+
+Ce script :
+
+1. copie `.env.example` vers `.env` si besoin
+2. installe les dépendances si `node_modules` n'existe pas encore
+3. initialise Prisma si `prisma/dev.db` n'existe pas encore
+4. lance le serveur Next.js en mode développement rapide avec hot reload
+
+Pour tester une version rebuildée locale, sans hot reload :
+
+1. double-cliquer sur `start-app.bat`
+
+Ce script :
+
+1. nettoie `.next`
+2. copie `.env.example` vers `.env` si besoin
+3. installe les dépendances si nécessaire
+4. initialise Prisma si besoin
+5. lance `npm run build`
+6. démarre l'application avec `npm run start`
+
+### Manuel / hors Windows
+
+Si tu préfères lancer l'application à la main :
 
 ```bash
 npm install
-copy .env.example .env
+cp .env.example .env
 npm run prisma:generate
 npm run prisma:push
 npm run dev
@@ -46,47 +80,41 @@ npm run dev
 
 Puis ouvrir [http://localhost:3000](http://localhost:3000).
 
-Sur Windows, tu peux aussi utiliser :
+Sur Windows, la copie peut aussi se faire avec :
 
 ```bash
-start-dev.bat
-```
-
-Pour tester une version buildee locale :
-
-```bash
-start-app.bat
+copy .env.example .env
 ```
 
 ## Distribution
 
-Le projet peut etre distribue comme une application locale prete a lancer, sans demander a l'utilisateur final d'installer Node, npm ou Prisma a la main.
+Le projet peut être distribué comme une application locale prête à lancer, sans demander à l'utilisateur final d'installer Node, npm ou Prisma à la main.
 
-La base SQLite seed vide est reconstruite pendant le packaging a partir du schema deja present dans `prisma/dev.db`.
+La base SQLite seed vide est reconstruite pendant le packaging à partir du schéma déjà présent dans `prisma/dev.db`.
 
 ### Construire le package Windows
 
-Le package Windows est maintenant portable : pas de setup `.exe`, pas d'installation a faire chez l'utilisateur final.
+Le package Windows est portable : pas de setup `.exe`, pas d'installation à faire chez l'utilisateur final.
 
-Fichiers a lancer a la racine du projet :
+Fichiers à lancer à la racine du projet :
 
 1. `1 - Install Node.js for Windows build.bat`
 2. `2 - Build JobMAXIMALIST Windows package.bat`
 3. `3 - Open Windows package output.bat`
 
-Ce que fait l'etape 1 :
+Ce que fait l'étape 1 :
 
 1. installe `Node.js LTS` si besoin
 2. si l'installation automatique ne marche pas, ouvre la page officielle
 
-Ce que fait l'etape 2 :
+Ce que fait l'étape 2 :
 
 1. build l'application en mode standalone
-2. prepare le bundle runtime local
-3. genere le dossier `dist/JobMAXIMALIST - Windows`
-4. genere le zip `dist/JobMAXIMALIST - Windows.zip`
+2. prépare le bundle runtime local
+3. génère le dossier `dist/JobMAXIMALIST - Windows`
+4. génère le zip `dist/JobMAXIMALIST - Windows.zip`
 
-Ce que fait l'etape 3 :
+Ce que fait l'étape 3 :
 
 1. ouvre directement le dossier de sortie
 
@@ -95,9 +123,9 @@ Contenu du package Windows pour l'utilisateur final :
 1. `1 - Start JobMAXIMALIST.vbs`
 2. `2 - Repair JobMAXIMALIST.vbs`
 3. `3 - Open JobMAXIMALIST data.vbs`
-4. `Lisez-moi - Demarrage.txt`
+4. `Lisez-moi - Démarrage.txt`
 
-Ordre cote utilisateur final :
+Ordre côté utilisateur final :
 
 1. extraire le zip si besoin
 2. garder tout le dossier ensemble
@@ -109,10 +137,10 @@ Lien officiel utile :
 
 ### Construire le package macOS
 
-Prerequis :
+Prérequis :
 
 - macOS
-- Node.js installe sur la machine de build
+- Node.js installé sur la machine de build
 - `pkgbuild` disponible
 
 Commande :
@@ -126,41 +154,41 @@ Sortie :
 - `dist/JobMAXIMALIST - macOS/1 - Installer JobMAXIMALIST.pkg`
 - `dist/JobMAXIMALIST - macOS/Lisez-moi - Installation.txt`
 
-### Premier lancement
+### Premier lancement d'un package distribué
 
 Au premier lancement, l'application :
 
-- cree son dossier de donnees local
+- crée son dossier de données local
 - initialise sa base SQLite locale
-- installe Chromium pour Playwright si necessaire
-- demarre le serveur local
+- installe Chromium pour Playwright si nécessaire
+- démarre le serveur local
 - ouvre automatiquement le navigateur
 
-Une connexion Internet est donc necessaire lors du tout premier lancement installe.
+Une connexion Internet est donc nécessaire lors du tout premier lancement d'un package distribué.
 
 ## Configuration et persistance locale
 
 L'application fonctionne avec une logique local-first.
 
-En mode developpement source :
+En mode développement source :
 
-- la configuration radar est stockee dans `data/url-radar-config.json`
-- l'etat radar est stocke dans `data/url-radar-state.json`
-- la base SQLite est stockee dans `prisma/dev.db`
+- la configuration radar est stockée dans `data/url-radar-config.json`
+- l'état radar est stocké dans `data/url-radar-state.json`
+- la base SQLite est stockée dans `prisma/dev.db`
 
-En mode application installee :
+En mode application packagée :
 
 - Windows : `%LocalAppData%/JobMAXIMALIST`
 - macOS : `~/Library/Application Support/JobMAXIMALIST`
 
-Les donnees locales couvrent notamment :
+Les données locales couvrent notamment :
 
 - les URLs suivies
 - les filtres
-- l'historique des URLs retirees
+- l'historique des URLs retirées récemment
 - les statuts d'offre (`viewed`, `saved`)
-- les offres detectees et les runs de refresh
-- les navigateurs Playwright installes pour le scraping
+- les offres détectées et les runs de refresh
+- les navigateurs Playwright installés pour le scraping
 
 ## API
 
@@ -178,7 +206,7 @@ Le front de l'application consomme les routes suivantes :
 
 ## Notes
 
-- le projet est pense pour un usage local d'abord, pas pour une architecture multi-utilisateur
-- certaines sources peuvent etre limitees par l'anti-bot, Cloudflare, la session ou l'adresse IP
-- selon les plateformes, la qualite d'extraction peut varier si le HTML ou le rendu JavaScript change
-- les diagnostics aident a comprendre les echecs, mais ne garantissent pas qu'une source restera exploitable dans le temps
+- le projet est pensé pour un usage local d'abord, pas pour une architecture multi-utilisateur
+- certaines sources peuvent être limitées par l'anti-bot, Cloudflare, la session ou l'adresse IP
+- selon les plateformes, la qualité d'extraction peut varier si le HTML ou le rendu JavaScript change
+- les diagnostics aident à comprendre les échecs, mais ne garantissent pas qu'une source restera exploitable dans le temps
