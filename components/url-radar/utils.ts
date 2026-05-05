@@ -1,5 +1,5 @@
 ﻿import type { JobSource } from "@/lib/types";
-import { getHostFromUrl, getUrlSourceMeta } from "@/lib/url-radar-sources";
+import { getHostFromUrl, getUrlSourceMeta, inferSourceFromUrl } from "@/lib/url-radar-sources";
 import type { JobCluster, JobClusterSource, SourceFilterOption, UrlRadarJob } from "@/components/url-radar/types";
 
 export function formatDate(value: string | null): string {
@@ -91,8 +91,31 @@ export function sourceMatchesFilter(cluster: JobCluster, filterKey: string | nul
   return cluster.sources.some((sourceItem) => sourceChipKey(sourceItem) === filterKey);
 }
 
-export function buildSourceOptions(clusters: JobCluster[]): SourceFilterOption[] {
+function createSourceOption(source: JobSource, url: string, count: number): SourceFilterOption {
+  return {
+    key: sourceChipKey({ source, url }),
+    label: sourceLabelFromUrl(source, url),
+    color: sourceColorFromUrl(source, url),
+    textColor: sourceTextColorFromUrl(url),
+    source,
+    url,
+    count
+  };
+}
+
+export function buildSourceOptions(clusters: JobCluster[], configuredUrls: string[] = []): SourceFilterOption[] {
   const counts = new Map<string, SourceFilterOption>();
+
+  for (const rawUrl of configuredUrls) {
+    const url = rawUrl.trim();
+    if (!url) continue;
+
+    const source = inferSourceFromUrl(url);
+    const option = createSourceOption(source, url, 0);
+    if (!counts.has(option.key)) {
+      counts.set(option.key, option);
+    }
+  }
 
   for (const cluster of clusters) {
     const localKeys = new Set<string>();
@@ -107,15 +130,7 @@ export function buildSourceOptions(clusters: JobCluster[]): SourceFilterOption[]
         continue;
       }
 
-      counts.set(key, {
-        key,
-        label: sourceLabelFromUrl(sourceItem.source, sourceItem.url),
-        color: sourceColorFromUrl(sourceItem.source, sourceItem.url),
-        textColor: sourceTextColorFromUrl(sourceItem.url),
-        source: sourceItem.source,
-        url: sourceItem.url,
-        count: 1
-      });
+      counts.set(key, createSourceOption(sourceItem.source, sourceItem.url, 1));
     }
   }
 

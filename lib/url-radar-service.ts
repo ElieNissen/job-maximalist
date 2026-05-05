@@ -76,6 +76,9 @@ const EMPTY_STATE: UrlRadarState = {
   runs: []
 };
 
+const WTTJ_BASE_URL = "https://www.welcometothejungle.com";
+const WTTJ_SEARCH_PATH_PATTERN = /^\/fr\/jobs(?:-matches)?(?:\/|$)/i;
+
 function getUrlRadarFilters(config?: Pick<UrlRadarConfig, "filters"> | null): JobSearchFilters {
   return sanitizeUrlRadarFilters(config?.filters ?? URL_RADAR_DEFAULT_FILTERS);
 }
@@ -442,6 +445,95 @@ function extractJsonFromNextData(html: string): unknown | null {
   }
 }
 
+function parseOptionalDate(value: unknown): Date | null {
+  if (!value) return null;
+  const parsed = new Date(String(value));
+  return Number.isFinite(parsed.getTime()) ? parsed : null;
+}
+
+function mapWttjJobCandidate(job: any): NormalizedJob | null {
+  const id = String(job?.id ?? job?.reference ?? job?.jobId ?? "").trim();
+  const slug = String(job?.slug ?? job?.jobSlug ?? "").trim().replace(/^\/+/, "");
+  const organizationSlug = String(job?.organization?.slug ?? job?.company?.slug ?? "").trim();
+  const rawUrl = String(job?.url ?? job?.job_url ?? job?.jobUrl ?? "").trim();
+  const absoluteUrl =
+    rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
+      ? rawUrl
+      : rawUrl.startsWith("/")
+        ? `${WTTJ_BASE_URL}${rawUrl}`
+        : slug && organizationSlug
+          ? `${WTTJ_BASE_URL}/fr/companies/${organizationSlug}/jobs/${slug}`
+          : "";
+  const title = String(job?.name ?? job?.title ?? "").trim();
+  const company = String(job?.organization?.name ?? job?.company?.name ?? job?.company_name ?? "").trim() || prettifySlug(organizationSlug);
+  const location =
+    String(job?.office?.city ?? job?.location?.city ?? job?.location?.name ?? job?.office?.name ?? job?.office?.label ?? job?.city ?? "").trim() ||
+    "France";
+  const contractLabel = String(job?.contract_type?.name ?? job?.contract_type ?? job?.contractType?.name ?? job?.contractType ?? job?.type ?? "").trim();
+  const metadataText = [
+    title,
+    company,
+    location,
+    contractLabel,
+    job?.experience_level_minimum,
+    job?.experienceLevelMinimum
+  ]
+    .filter(Boolean)
+    .map(String)
+    .join(" ");
+
+  if (!title || !company || !absoluteUrl) return null;
+
+  return withMetadata(
+    {
+      source: "wttj",
+      sourceJobId: id || slug || deterministicHash(absoluteUrl),
+      title,
+      company,
+      location,
+      contractType: parseContractType(contractLabel),
+      url: canonicalUrl(absoluteUrl),
+      postedAt: parseOptionalDate(job?.published_at ?? job?.created_at ?? job?.publishedAt ?? job?.createdAt)
+    },
+    metadataText
+  );
+}
+
+function extractWttjJobsFromUnknownData(data: unknown): NormalizedJob[] {
+  const queue: unknown[] = [data];
+  const visited = new Set<object>();
+  const jobs = new Map<string, NormalizedJob>();
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!current || typeof current !== "object") continue;
+
+    const objectRef = current as object;
+    if (visited.has(objectRef)) continue;
+    visited.add(objectRef);
+
+    if (Array.isArray(current)) {
+      for (const value of current) {
+        if (value && typeof value === "object") queue.push(value);
+      }
+      continue;
+    }
+
+    const maybeJob = mapWttjJobCandidate(current);
+    if (maybeJob) {
+      jobs.set(maybeJob.url, maybeJob);
+    }
+
+    for (const value of Object.values(current)) {
+      if (value && typeof value === "object") {
+        queue.push(value);
+      }
+    }
+  }
+
+  return Array.from(jobs.values());
+}
+
 function extractWttjJobsFromNextData(data: any): NormalizedJob[] {
   const posts =
     data?.props?.pageProps?.searchJobs?.jobs ??
@@ -449,37 +541,8 @@ function extractWttjJobsFromNextData(data: any): NormalizedJob[] {
     data?.props?.pageProps?.dehydratedState?.queries?.flatMap((q: any) => q?.state?.data?.jobs ?? []) ??
     [];
 
-  if (!Array.isArray(posts)) return [];
-
-  return posts
-    .map((job: any) => {
-      const id = String(job.id ?? job.reference ?? "");
-      const slug = job.slug ? `/fr/companies/${job.organization?.slug ?? "unknown"}/jobs/${job.slug}` : "";
-      const url = job.url ?? (slug ? `https://www.welcometothejungle.com${slug}` : "");
-      const title = job.name ?? job.title ?? "";
-      const company = job.organization?.name ?? job.company_name ?? "";
-      const location = job.office?.city ?? job.location?.city ?? job.location?.name ?? job.office?.name ?? "France";
-      const contractLabel = job.contract_type?.name ?? job.contract_type ?? "";
-      const published = job.published_at ?? job.created_at;
-      const metadataText = [title, company, location, contractLabel, job.experience_level_minimum].filter(Boolean).join(" ");
-
-      if (!id || !title || !company || !url) return null;
-
-      return withMetadata(
-        {
-          source: "wttj",
-          sourceJobId: id,
-          title,
-          company,
-          location,
-          contractType: parseContractType(contractLabel),
-          url: canonicalUrl(url),
-          postedAt: published ? new Date(published) : null
-        },
-        metadataText
-      );
-    })
-    .filter(Boolean) as NormalizedJob[];
+  const directJobs = Array.isArray(posts) ? posts.map((job: any) => mapWttjJobCandidate(job)).filter(Boolean) as NormalizedJob[] : [];
+  return directJobs.length > 0 ? directJobs : extractWttjJobsFromUnknownData(data);
 }
 
 function extractWttjJobsFromJsonLd(html: string): NormalizedJob[] {
@@ -553,19 +616,62 @@ function extractWttjJobsFromAnchors(html: string, targetUrl: string): Normalized
   return jobs;
 }
 
+function isWttjSearchUrl(targetUrl: string): boolean {
+  try {
+    return WTTJ_SEARCH_PATH_PATTERN.test(new URL(targetUrl).pathname);
+  } catch {
+    return /\/fr\/jobs(?:-matches)?(?:\/|$)/i.test(targetUrl);
+  }
+}
+
+function isWttjJobsMatchesUrl(targetUrl: string): boolean {
+  try {
+    return /^\/fr\/jobs-matches(?:\/|$)/i.test(new URL(targetUrl).pathname);
+  } catch {
+    return /\/fr\/jobs-matches(?:\/|$)/i.test(targetUrl);
+  }
+}
+
 async function scrapeWttjWithPlaywright(targetUrl: string): Promise<ScrapeResult> {
   try {
     const playwright = await import("playwright");
     const browser = await playwright.chromium.launch({ headless: true });
 
     try {
+      const apiJobs = new Map<string, NormalizedJob>();
       const page = await browser.newPage({
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       });
 
+      page.on("response", async (response) => {
+        if (!response.ok() || !/welcometothejungle\.com/i.test(response.url())) return;
+
+        const contentType = response.headers()["content-type"] ?? "";
+        if (!/json/i.test(contentType)) return;
+
+        try {
+          const jobsFromPayload = extractWttjJobsFromUnknownData(await response.json());
+          for (const job of jobsFromPayload) {
+            apiJobs.set(job.url, job);
+          }
+        } catch {
+          // Ignore unrelated JSON responses and keep the DOM fallback.
+        }
+      });
+
+      const jobsMatchesPage = isWttjJobsMatchesUrl(targetUrl);
       await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-      await page.waitForTimeout(3500);
+      await page.waitForLoadState("networkidle", { timeout: jobsMatchesPage ? 15000 : 8000 }).catch(() => undefined);
+      await page.waitForSelector('a[href*="/fr/companies/"][href*="/jobs/"]', { timeout: jobsMatchesPage ? 9000 : 4000 }).catch(() => undefined);
+
+      if (jobsMatchesPage) {
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+        await page.waitForTimeout(1500);
+        await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => undefined);
+      } else {
+        await page.waitForTimeout(1200);
+      }
 
       const rawJobs = await page.evaluate(() => {
         const anchors = Array.from(
@@ -620,19 +726,28 @@ async function scrapeWttjWithPlaywright(targetUrl: string): Promise<ScrapeResult
         );
       }
 
-      if (jobs.length === 0) {
+      const combinedJobs = Array.from(new Map([...apiJobs.values(), ...jobs].map((job) => [job.url, job])).values());
+
+      if (combinedJobs.length === 0) {
         return {
           jobs: [],
-          errors: ["Playwright opened WTTJ but found no job cards"],
-          attempts: [buildFailureAttempt("wttj_playwright", "empty", "browser rendered but no cards found")],
+          errors: ["Playwright opened WTTJ but found no job data"],
+          attempts: [buildFailureAttempt("wttj_playwright", "empty", "browser rendered but no job data found")],
           selectedMethod: null
         };
       }
 
+      const fallbackNote =
+        apiJobs.size > 0 && jobs.length > 0
+          ? "browser network + DOM fallback"
+          : apiJobs.size > 0
+            ? "browser network fallback"
+            : "browser DOM fallback";
+
       return {
-        jobs,
+        jobs: combinedJobs,
         errors: ["WTTJ Playwright fallback used"],
-        attempts: [buildSuccessAttempt("wttj_playwright", jobs, "browser fallback")],
+        attempts: [buildSuccessAttempt("wttj_playwright", combinedJobs, fallbackNote)],
         selectedMethod: "wttj_playwright"
       };
     } finally {
@@ -836,14 +951,14 @@ async function scrapeIndeedSearchUrl(targetUrl: string): Promise<ScrapeResult> {
       };
 }
 
-async function fetchHtmlWithBestEffort(targetUrl: string): Promise<{ html: string; errors: string[] }> {
+async function fetchHtmlWithBestEffort(targetUrl: string): Promise<{ html: string; errors: string[]; finalUrl: string }> {
   const errors: string[] = [];
 
   if (canUseCloudflareForUrl(targetUrl)) {
     try {
       const renderedHtml = await fetchRenderedHtmlViaCloudflare(targetUrl);
       if (renderedHtml) {
-        return { html: renderedHtml, errors };
+        return { html: renderedHtml, errors, finalUrl: targetUrl };
       }
     } catch (error) {
       errors.push(error instanceof Error ? error.message : "Cloudflare content failed");
@@ -852,7 +967,7 @@ async function fetchHtmlWithBestEffort(targetUrl: string): Promise<{ html: strin
     try {
       const crawledHtml = await fetchRenderedHtmlViaCloudflareCrawl(targetUrl);
       if (crawledHtml) {
-        return { html: crawledHtml, errors };
+        return { html: crawledHtml, errors, finalUrl: targetUrl };
       }
     } catch (error) {
       errors.push(error instanceof Error ? error.message : "Cloudflare crawl failed");
@@ -862,7 +977,8 @@ async function fetchHtmlWithBestEffort(targetUrl: string): Promise<{ html: strin
   const response = await fetchWithRetry(targetUrl, {}, { retries: 1, timeoutMs: 12000, initialDelayMs: 400 });
   return {
     html: await response.text(),
-    errors
+    errors,
+    finalUrl: response.url
   };
 }
 function extractApecCompanyAndTitle(text: string): { company: string; title: string } {
@@ -1781,7 +1897,29 @@ async function scrapeApecSearchUrl(targetUrl: string): Promise<ScrapeResult> {
 
 async function scrapeWttjSearchUrl(targetUrl: string): Promise<ScrapeResult> {
   try {
-    const { html, errors } = await fetchHtmlWithBestEffort(targetUrl);
+    const jobsMatchesPage = isWttjJobsMatchesUrl(targetUrl);
+    const { html, errors, finalUrl } = await fetchHtmlWithBestEffort(targetUrl);
+
+    if (
+      jobsMatchesPage &&
+      /welcometothejungle\.com\/fr\/authenticate\/signin/i.test(finalUrl)
+    ) {
+      return {
+        jobs: [],
+        errors: [
+          "WTTJ jobs matches requires a signed-in Welcome to the Jungle profile",
+          "Anonymous requests are redirected to the WTTJ sign-in page"
+        ],
+        attempts: [
+          buildFailureAttempt(
+            "wttj_auth_redirect",
+            "error",
+            "jobs-matches redirected to WTTJ sign-in"
+          )
+        ],
+        selectedMethod: null
+      };
+    }
 
     const nextData = extractJsonFromNextData(html);
     const nextDataJobs = nextData ? extractWttjJobsFromNextData(nextData) : [];
@@ -1809,14 +1947,19 @@ async function scrapeWttjSearchUrl(targetUrl: string): Promise<ScrapeResult> {
     ];
 
     const baseChoice = chooseBestResult(baseCandidates);
-    if (isSatisfactory(baseChoice.jobs)) {
+    if (!jobsMatchesPage && isSatisfactory(baseChoice.jobs)) {
       return baseChoice;
     }
 
     const playwrightResult = await scrapeWttjWithPlaywright(targetUrl);
     const withPlaywright = chooseBestResult([
       ...baseCandidates,
-      { method: "wttj_playwright", jobs: playwrightResult.jobs, errors: playwrightResult.errors, note: "browser fallback" }
+      {
+        method: "wttj_playwright",
+        jobs: playwrightResult.jobs,
+        errors: playwrightResult.errors,
+        note: jobsMatchesPage ? "browser fallback for jobs matches" : "browser fallback"
+      }
     ]);
 
     if (withPlaywright.jobs.length > 0) {
@@ -1825,7 +1968,7 @@ async function scrapeWttjSearchUrl(targetUrl: string): Promise<ScrapeResult> {
 
     return {
       jobs: [],
-      errors: [...errors, "WTTJ parsing returned no jobs", ...playwrightResult.errors],
+      errors: [...errors, jobsMatchesPage ? "WTTJ jobs matches parsing returned no jobs" : "WTTJ parsing returned no jobs", ...playwrightResult.errors],
       attempts: [...baseChoice.attempts, ...playwrightResult.attempts.filter((attempt) => attempt.method === "wttj_playwright")],
       selectedMethod: null
     };
@@ -2052,7 +2195,7 @@ async function scrapeTarget(targetUrl: string): Promise<ScrapeResult> {
   if (host.includes("linkedin.com") && /\/jobs\/search/i.test(targetUrl)) {
     return scrapeLinkedinSearchUrl(targetUrl);
   }
-  if (host.includes("welcometothejungle.com") && /\/fr\/jobs/i.test(targetUrl)) {
+  if (host.includes("welcometothejungle.com") && isWttjSearchUrl(targetUrl)) {
     return scrapeWttjSearchUrl(targetUrl);
   }
   if (host.includes("indeed.") && /\/jobs/i.test(targetUrl)) {

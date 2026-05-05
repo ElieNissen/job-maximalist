@@ -20,10 +20,12 @@ export interface UrlRadarConfig {
 
 const FILE_PATH = getRuntimeConfigFilePath();
 const BACKUP_FILE_PATH = getRuntimeConfigBackupFilePath();
+const REMOVED_URL_HISTORY_MAX_ENTRIES = 30;
+const REMOVED_URL_HISTORY_RETENTION_MS = 24 * 60 * 60 * 1000;
 
 export const URL_RADAR_DEFAULT_URLS = [
   "https://www.linkedin.com/jobs/search/?currentJobId=4381874800&distance=25.0&f_TPR=r86400&geoId=104246759&keywords=%22product%20designer%22%20OR%20%22ux%20designer%22%20OR%20%22ux%2Fui%20designer%22%20OR%20%22interaction%20designer%22&origin=JOB_SEARCH_PAGE_JOB_FILTER",
-  "https://www.welcometothejungle.com/fr/jobs?refinementList%5Boffices.country_code%5D%5B%5D=FR&refinementList%5Bcontract_type%5D%5B%5D=full_time&refinementList%5Bcontract_type%5D%5B%5D=temporary&refinementList%5Bexperience_level_minimum%5D%5B%5D=0-1&refinementList%5Bexperience_level_minimum%5D%5B%5D=1-3&refinementList%5Bexperience_level_minimum%5D%5B%5D=3-5&refinementList%5Bhas_experience_level_minimum%5D%5B%5D=0&query=ux%20ui%20designer&page=1&sortBy=mostRecent&searchTitle=false",
+  "https://www.welcometothejungle.com/fr/jobs?query=ux%20ui%20designer&sortBy=mostRecent",
   "https://choisirleservicepublic.gouv.fr/nos-offres/filtres/mot-cles/designer/localisation/208/",
   "https://www.hellowork.com/fr-fr/emploi/recherche.html?k=UX+designer&k_autocomplete=http%3A%2F%2Fwww.rj.com%2FCommun%2FPost%2FDesigner_interactivite&l=%C3%8Ele-de-France&l_autocomplete=http%3A%2F%2Fwww.rj.com%2Fcommun%2Flocalite%2Fregion%2F11&st=date&msa=0&ray=20&d=all",
   "https://www.apec.fr/candidat/recherche-emploi.html/emploi?typesConvention=143684&typesConvention=143685&typesConvention=143686&typesConvention=143687&typesConvention=143706&lieux=711&motsCles=ux%20or%20product&sortsType=SCORE&page=0",
@@ -45,6 +47,22 @@ const DEFAULT_CONFIG: UrlRadarConfig = {
 
 function normalizeUrlKey(url: string): string {
   return url.trim().toLowerCase();
+}
+
+function isRemovedUrlHistoryEntryFresh(removedAt: string, now = Date.now()): boolean {
+  const timestamp = new Date(removedAt).getTime();
+  if (!Number.isFinite(timestamp)) return false;
+  return now - timestamp <= REMOVED_URL_HISTORY_RETENTION_MS;
+}
+
+function pruneRemovedUrlsHistory(
+  entries: Array<{ url: string; removedAt: string }>,
+  now = Date.now()
+): Array<{ url: string; removedAt: string }> {
+  return entries
+    .filter((entry) => isRemovedUrlHistoryEntryFresh(entry.removedAt, now))
+    .sort((left, right) => new Date(right.removedAt).getTime() - new Date(left.removedAt).getTime())
+    .slice(0, REMOVED_URL_HISTORY_MAX_ENTRIES);
 }
 
 function sanitizeUrls(input: unknown): string[] {
@@ -82,6 +100,7 @@ function sanitizeRemovedUrlsHistory(input: unknown): Array<{ url: string; remove
 
   const seen = new Set<string>();
   const cleaned: Array<{ url: string; removedAt: string }> = [];
+  const now = Date.now();
 
   for (const entry of input) {
     const raw = (entry ?? {}) as Record<string, unknown>;
@@ -98,10 +117,12 @@ function sanitizeRemovedUrlsHistory(input: unknown): Array<{ url: string; remove
         ? new Date(removedAtRaw).toISOString()
         : new Date().toISOString();
 
+    if (!isRemovedUrlHistoryEntryFresh(removedAt, now)) continue;
+
     cleaned.push({ url, removedAt });
   }
 
-  return cleaned.slice(0, 30);
+  return pruneRemovedUrlsHistory(cleaned, now);
 }
 
 function mergeRemovedUrlsHistory(
@@ -110,10 +131,12 @@ function mergeRemovedUrlsHistory(
 ): Array<{ url: string; removedAt: string }> {
   const activeKeys = new Set(next.urls.map(normalizeUrlKey));
   const historyByKey = new Map<string, { url: string; removedAt: string }>();
+  const now = Date.now();
 
   for (const entry of [...next.removedUrlsHistory, ...previous.removedUrlsHistory]) {
     const key = normalizeUrlKey(entry.url);
     if (!key || activeKeys.has(key) || historyByKey.has(key)) continue;
+    if (!isRemovedUrlHistoryEntryFresh(entry.removedAt, now)) continue;
     historyByKey.set(key, {
       url: entry.url.trim(),
       removedAt: entry.removedAt
@@ -129,9 +152,7 @@ function mergeRemovedUrlsHistory(
     });
   }
 
-  return Array.from(historyByKey.values())
-    .sort((left, right) => new Date(right.removedAt).getTime() - new Date(left.removedAt).getTime())
-    .slice(0, 30);
+  return pruneRemovedUrlsHistory(Array.from(historyByKey.values()), now);
 }
 
 export async function getUrlRadarConfig(): Promise<UrlRadarConfig> {
