@@ -23,19 +23,7 @@ const BACKUP_FILE_PATH = getRuntimeConfigBackupFilePath();
 const REMOVED_URL_HISTORY_MAX_ENTRIES = 30;
 const REMOVED_URL_HISTORY_RETENTION_MS = 24 * 60 * 60 * 1000;
 
-export const URL_RADAR_DEFAULT_URLS = [
-  "https://www.linkedin.com/jobs/search/?currentJobId=4381874800&distance=25.0&f_TPR=r86400&geoId=104246759&keywords=%22product%20designer%22%20OR%20%22ux%20designer%22%20OR%20%22ux%2Fui%20designer%22%20OR%20%22interaction%20designer%22&origin=JOB_SEARCH_PAGE_JOB_FILTER",
-  "https://www.welcometothejungle.com/fr/jobs?query=ux%20ui%20designer&sortBy=mostRecent",
-  "https://choisirleservicepublic.gouv.fr/nos-offres/filtres/mot-cles/designer/localisation/208/",
-  "https://www.hellowork.com/fr-fr/emploi/recherche.html?k=UX+designer&k_autocomplete=http%3A%2F%2Fwww.rj.com%2FCommun%2FPost%2FDesigner_interactivite&l=%C3%8Ele-de-France&l_autocomplete=http%3A%2F%2Fwww.rj.com%2Fcommun%2Flocalite%2Fregion%2F11&st=date&msa=0&ray=20&d=all",
-  "https://www.apec.fr/candidat/recherche-emploi.html/emploi?typesConvention=143684&typesConvention=143685&typesConvention=143686&typesConvention=143687&typesConvention=143706&lieux=711&motsCles=ux%20or%20product&sortsType=SCORE&page=0",
-  "https://www.adzuna.fr/search?q=ux%20ui%20designer%20ou%20product%20designer&w=Ile-de-France%2C%20France",
-  "https://mon-vie-via.businessfrance.fr/offres/recherche?query=ux%20ui%20%20product%20designer&teletravail=0&porteEnv=0",
-  "https://fr.indeed.com/jobs?q=ux+designer+product+-alternance&l=Paris+%2875%29&radius=25&from=searchOnDesktopSerp&vjk=82ccf33515b4ff1b",
-  "https://hiring.cafe/?searchState=%7B%22searchQuery%22%3A%22product+designer%22%2C%22dateFetchedPastNDays%22%3A14%7D",
-  "https://app.licornesociety.com/jobs",
-  "https://www.free-work.com/fr/tech-it/jobs?locations=fr~~~&query=product%20designer"
-] as const;
+export const URL_RADAR_DEFAULT_URLS = [] as const;
 
 const DEFAULT_CONFIG: UrlRadarConfig = {
   enabled: true,
@@ -77,7 +65,7 @@ function sanitizeUrls(input: unknown): string[] {
     )
   );
 
-  return cleaned.length > 0 ? cleaned : DEFAULT_CONFIG.urls;
+  return cleaned;
 }
 
 function sanitizeConfig(input: unknown): UrlRadarConfig {
