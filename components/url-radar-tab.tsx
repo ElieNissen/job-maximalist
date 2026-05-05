@@ -77,7 +77,7 @@ export default function UrlRadarTab() {
   const visibleClusters = useMemo(() => clusterJobs(visibleItems), [visibleItems]);
   const excludedClusters = useMemo(() => clusterJobs(excludedItems), [excludedItems]);
   const configuredSourceUrls = useMemo(() => config.urls.map((url) => url.trim()).filter(Boolean), [config.urls]);
-  const visibleSourceOptions = useMemo(() => buildSourceOptions(visibleClusters, configuredSourceUrls), [configuredSourceUrls, visibleClusters]);
+  const visibleSourceOptions = useMemo(() => buildSourceOptions(visibleClusters), [visibleClusters]);
   const excludedSourceOptions = useMemo(() => buildSourceOptions(excludedClusters, configuredSourceUrls), [configuredSourceUrls, excludedClusters]);
 
   const filteredVisibleClusters = useMemo(
