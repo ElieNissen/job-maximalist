@@ -10,6 +10,7 @@ import { cloneUrlRadarFilters, sanitizeUrlRadarFilters, URL_RADAR_DEFAULT_FILTER
 import { canonicalUrl, decodeHtmlEntities, normalizeText, parseContractType } from "@/lib/utils";
 import { canUseCloudflareForUrl, fetchRenderedHtmlViaCloudflare, fetchRenderedHtmlViaCloudflareCrawl } from "@/lib/cloudflare-browser-rendering";
 import { inferSourceFromUrl } from "@/lib/url-radar-sources";
+import { getRuntimeStateBackupFilePath, getRuntimeStateFilePath } from "@/lib/runtime-paths";
 
 type RunStatus = "SUCCESS" | "PARTIAL" | "FAILED";
 type AttemptStatus = "success" | "empty" | "error" | "skipped";
@@ -67,8 +68,8 @@ interface UrlRadarState {
   runs: UrlRadarRun[];
 }
 
-const FILE_PATH = path.join(process.cwd(), "data", "url-radar-state.json");
-const BACKUP_FILE_PATH = path.join(process.cwd(), "data", "url-radar-state.backup.json");
+const FILE_PATH = getRuntimeStateFilePath();
+const BACKUP_FILE_PATH = getRuntimeStateBackupFilePath();
 
 const EMPTY_STATE: UrlRadarState = {
   jobs: [],

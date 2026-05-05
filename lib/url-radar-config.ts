@@ -5,6 +5,10 @@ import {
   sanitizeUrlRadarFilters,
   URL_RADAR_DEFAULT_FILTERS
 } from "@/lib/url-radar-filters";
+import {
+  getRuntimeConfigBackupFilePath,
+  getRuntimeConfigFilePath
+} from "@/lib/runtime-paths";
 
 export interface UrlRadarConfig {
   enabled: boolean;
@@ -14,8 +18,8 @@ export interface UrlRadarConfig {
   removedUrlsHistory: Array<{ url: string; removedAt: string }>;
 }
 
-const FILE_PATH = path.join(process.cwd(), "data", "url-radar-config.json");
-const BACKUP_FILE_PATH = path.join(process.cwd(), "data", "url-radar-config.backup.json");
+const FILE_PATH = getRuntimeConfigFilePath();
+const BACKUP_FILE_PATH = getRuntimeConfigBackupFilePath();
 
 export const URL_RADAR_DEFAULT_URLS = [
   "https://www.linkedin.com/jobs/search/?currentJobId=4381874800&distance=25.0&f_TPR=r86400&geoId=104246759&keywords=%22product%20designer%22%20OR%20%22ux%20designer%22%20OR%20%22ux%2Fui%20designer%22%20OR%20%22interaction%20designer%22&origin=JOB_SEARCH_PAGE_JOB_FILTER",

@@ -11,7 +11,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push"
+    "prisma:push": "prisma db push",
+    "package:runtime": "npm run build && node scripts/distribution/create-runtime-bundle.mjs",
+    "package:windows": "powershell -ExecutionPolicy Bypass -File scripts/distribution/build-windows-package.ps1",
+    "package:macos": "sh scripts/distribution/build-macos-installer.sh"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.1.1",
@@ -19,6 +22,7 @@
     "@prisma/client": "^6.6.0",
     "next": "15.2.0",
     "node-cron": "^4.0.5",
+    "playwright": "^1.58.2",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
@@ -26,7 +30,6 @@
     "@types/node": "^22.13.10",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
-    "playwright": "^1.58.2",
     "prisma": "^6.6.0",
     "typescript": "^5.8.2",
     "vitest": "^3.0.9"
