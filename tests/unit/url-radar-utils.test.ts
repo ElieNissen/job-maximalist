@@ -52,4 +52,24 @@ describe("buildSourceOptions", () => {
       })
     );
   });
+
+  it("groups configured and scraped URLs from the same source under one tag", () => {
+    const options = buildSourceOptions(
+      [
+        {
+          ...BASE_CLUSTER,
+          sources: [{ source: "linkedin", url: "https://fr.linkedin.com/jobs/view/123456789" }]
+        }
+      ],
+      ["https://www.linkedin.com/jobs/search/?keywords=product%20designer"]
+    );
+
+    expect(options).toHaveLength(1);
+    expect(options[0]).toEqual(
+      expect.objectContaining({
+        label: "LINKEDIN",
+        count: 1
+      })
+    );
+  });
 });

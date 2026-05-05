@@ -102,6 +102,12 @@ function getSourceMatcher(host: string): SourceMatcher | undefined {
   return SOURCE_MATCHERS.find((entry) => entry.match.some((domain) => host.includes(domain)));
 }
 
+export function getCanonicalSourceHost(url: string): string {
+  const host = getHostFromUrl(url);
+  const matched = getSourceMatcher(host);
+  return matched?.match[0] ?? host;
+}
+
 export function inferSourceFromUrl(url: string): JobSource {
   const host = getHostFromUrl(url);
   return getSourceMatcher(host)?.source ?? "career_sites";

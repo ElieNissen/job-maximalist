@@ -1,5 +1,5 @@
 ﻿import type { JobSource } from "@/lib/types";
-import { getHostFromUrl, getUrlSourceMeta, inferSourceFromUrl } from "@/lib/url-radar-sources";
+import { getCanonicalSourceHost, getUrlSourceMeta, inferSourceFromUrl } from "@/lib/url-radar-sources";
 import type { JobCluster, JobClusterSource, SourceFilterOption, UrlRadarJob } from "@/components/url-radar/types";
 
 export function formatDate(value: string | null): string {
@@ -83,7 +83,7 @@ export function sourceTextColorFromUrl(url: string): string {
 }
 
 export function sourceChipKey(sourceItem: JobClusterSource): string {
-  return `${sourceLabelFromUrl(sourceItem.source, sourceItem.url)}|${getHostFromUrl(sourceItem.url)}`;
+  return `${sourceLabelFromUrl(sourceItem.source, sourceItem.url)}|${getCanonicalSourceHost(sourceItem.url)}`;
 }
 
 export function sourceMatchesFilter(cluster: JobCluster, filterKey: string | null): boolean {
