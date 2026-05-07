@@ -341,25 +341,28 @@ export default function UrlRadarTab() {
       <div className="radar-content-shell">
         <div className="radar-primary-filters">
           <MainTabSwitch currentTab={mainTab} onChange={setMainTab} />
+        </div>
+
+        <div key={mainTab} className="radar-main-panel">
           <SourceFilterBar
             options={mainTab === "visible" ? visibleSourceOptions : excludedSourceOptions}
             activeFilter={mainTab === "visible" ? visibleSourceFilter : excludedSourceFilter}
             onChange={mainTab === "visible" ? setVisibleSourceFilter : setExcludedSourceFilter}
             totalCount={mainTab === "visible" ? visibleClusters.length : excludedClusters.length}
           />
+
+          {error ? <div className="radar-inline-error radar-error-banner">Erreur: {error}</div> : null}
+
+          <JobsColumn
+            currentTab={mainTab}
+            newClusters={newClusters}
+            olderClusters={olderClusters}
+            excludedClusters={filteredExcludedClusters}
+            lastRefreshAt={jobsData.lastRefreshAt}
+            onOpenCluster={markClusterOpened}
+            onToggleSaved={toggleSaved}
+          />
         </div>
-
-        {error ? <div className="radar-inline-error radar-error-banner">Erreur: {error}</div> : null}
-
-        <JobsColumn
-          currentTab={mainTab}
-          newClusters={newClusters}
-          olderClusters={olderClusters}
-          excludedClusters={filteredExcludedClusters}
-          lastRefreshAt={jobsData.lastRefreshAt}
-          onOpenCluster={markClusterOpened}
-          onToggleSaved={toggleSaved}
-        />
       </div>
     </div>
   );

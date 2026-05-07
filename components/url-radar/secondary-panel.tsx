@@ -1,6 +1,7 @@
 ﻿import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, Layers02Icon } from "@hugeicons/core-free-icons";
+import { SlidingTabRow, type SlidingTabOption } from "@/components/url-radar/section-tabs";
 import { getHostFromUrl, getUrlSourceMeta } from "@/lib/url-radar-sources";
 import {
   cloneUrlRadarFilters,
@@ -39,6 +40,12 @@ type DiagnosticState = {
 };
 
 type SettingsTab = "urls" | "sources" | "filters";
+
+const SETTINGS_TAB_OPTIONS: readonly SlidingTabOption<SettingsTab>[] = [
+  { label: "URLs", value: "urls" },
+  { label: "Diagnostic", value: "sources" },
+  { label: "Filtres avancés", value: "filters" }
+];
 
 function normalizeKey(value: string): string {
   return value.trim().toLowerCase();
@@ -98,14 +105,6 @@ function CloseButton({ onClick }: { onClick: () => void }) {
   return (
     <button type="button" className="radar-close-button" onClick={onClick} aria-label="Fermer">
       <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} className="radar-button-icon" />
-    </button>
-  );
-}
-
-function SettingsTabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button type="button" className={`radar-tab-button radar-settings-tab-button${active ? " is-active" : ""}`} onClick={onClick}>
-      {label}
     </button>
   );
 }
@@ -644,11 +643,14 @@ export function SecondaryPanel({ openSection, onClose, config, jobs, status, sav
           <CloseButton onClick={onClose} />
         </div>
 
-        <div className="radar-tab-row radar-settings-tabs">
-          <SettingsTabButton label="URLs" active={settingsTab === "urls"} onClick={() => setSettingsTab("urls")} />
-          <SettingsTabButton label="Diagnostic" active={settingsTab === "sources"} onClick={() => setSettingsTab("sources")} />
-          <SettingsTabButton label="Filtres avancés" active={settingsTab === "filters"} onClick={() => setSettingsTab("filters")} />
-        </div>
+        <SlidingTabRow
+          ariaLabel="Sections des réglages"
+          className="radar-settings-tabs"
+          buttonClassName="radar-settings-tab-button"
+          value={settingsTab}
+          onChange={setSettingsTab}
+          options={SETTINGS_TAB_OPTIONS}
+        />
 
         <div key={settingsTab} className="radar-settings-panel">
           {settingsTab === "urls" ? (

@@ -19,9 +19,9 @@
   --radius-md: 18px;
   --radius-sm: 14px;
   --radius-pill: 999px;
-  --motion-fast: 150ms;
-  --motion-standard: 210ms;
-  --motion-slow: 280ms;
+  --motion-fast: 170ms;
+  --motion-standard: 260ms;
+  --motion-slow: 360ms;
   --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -225,6 +225,7 @@ input {
 }
 
 .radar-tab-row {
+  position: relative;
   width: fit-content;
   max-width: 100%;
   padding: 4px;
@@ -234,12 +235,48 @@ input {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
     0 12px 22px rgba(52, 42, 35, 0.04);
+  isolation: isolate;
+  overflow: hidden;
 }
 
 :root[data-theme="dark"] .radar-tab-row {
   background: var(--surface-soft);
   border-color: rgba(238, 225, 213, 0.14);
   box-shadow: none;
+}
+
+.radar-tab-row__indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  border: 1px solid rgba(74, 64, 57, 0.08);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow:
+    0 12px 24px rgba(78, 64, 52, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, width;
+  z-index: 0;
+  transition:
+    transform var(--motion-slow) var(--motion-ease-emphasized),
+    width var(--motion-standard) var(--motion-ease-emphasized),
+    opacity var(--motion-fast) var(--motion-ease-standard),
+    background var(--motion-fast) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-standard) var(--motion-ease-standard);
+}
+
+.radar-tab-row__indicator.is-visible {
+  opacity: 1;
+}
+
+:root[data-theme="dark"] .radar-tab-row__indicator {
+  background: var(--surface-raised);
+  border-color: rgba(215, 182, 159, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .radar-tab-button strong,
@@ -255,22 +292,23 @@ input {
   font-weight: 600;
   border-radius: 18px;
   padding: 8px 11px;
+  transform-origin: center;
+  position: relative;
+  z-index: 1;
 }
 
 .radar-tab-button.is-active {
-  background: var(--surface);
-  border-color: rgba(74, 64, 57, 0.08);
+  background: transparent;
+  border-color: transparent;
   color: var(--text);
-  box-shadow:
-    0 12px 24px rgba(78, 64, 52, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .radar-tab-button.is-active {
-  background: var(--surface-raised);
-  border-color: rgba(215, 182, 159, 0.24);
+  background: transparent;
+  border-color: transparent;
   color: var(--text);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 .radar-utility-button,
@@ -439,17 +477,20 @@ input {
 }
 
 .radar-tab-button:hover,
-.radar-utility-button:hover,
 .radar-chip:hover,
-.radar-inline-button:hover,
-.radar-primary-action:hover,
 .radar-source-pill:hover,
 .radar-chip--source:hover,
+.radar-settings-tab:hover {
+  transform: translateY(-0.5px);
+}
+
+.radar-utility-button:hover,
+.radar-inline-button:hover,
+.radar-primary-action:hover,
 .radar-close-button:hover,
 .radar-bookmark-button:hover,
-.radar-job-card:hover,
 .radar-icon-toggle:hover,
-.radar-settings-tab:hover {
+.radar-job-card:hover {
   transform: translateY(-1px);
 }
 
@@ -488,7 +529,7 @@ input {
 @keyframes radar-surface-enter {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.985);
+    transform: translateY(18px) scale(0.972);
   }
 
   to {
@@ -500,26 +541,26 @@ input {
 @keyframes radar-content-enter {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(14px) scale(0.992);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 @keyframes radar-bookmark-pop {
   0% {
-    transform: scale(0.86);
+    transform: scale(0.82) rotate(-8deg);
   }
 
   55% {
-    transform: scale(1.08);
+    transform: scale(1.12) rotate(3deg);
   }
 
   100% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
   }
 }
 
@@ -560,6 +601,18 @@ input {
 
 .radar-main-tab-row {
   align-self: start;
+}
+
+.radar-main-panel,
+.radar-settings-panel {
+  display: grid;
+  gap: 0;
+  will-change: transform, opacity;
+  animation: radar-content-enter var(--motion-slow) var(--motion-ease-emphasized) both;
+}
+
+.radar-main-panel {
+  margin-top: 24px;
 }
 
 .radar-filter-strip__actions {
@@ -1426,10 +1479,6 @@ input {
   animation: radar-surface-enter var(--motion-standard) var(--motion-ease-emphasized) both;
 }
 
-.radar-settings-panel {
-  animation: radar-content-enter var(--motion-standard) var(--motion-ease-emphasized) both;
-}
-
 .radar-attempt-row {
   display: grid;
   gap: 4px;
@@ -1471,14 +1520,17 @@ input {
   .radar-modal,
   .radar-detail-overlay,
   .radar-detail-dialog,
+  .radar-main-panel,
   .radar-settings-panel,
   .radar-empty-state__bubble,
   .radar-filter-impact-banner,
+  .radar-tab-button.is-active,
   .radar-bookmark-button.is-active .radar-bookmark-icon {
     animation: none;
   }
 
   .radar-tab-button,
+  .radar-tab-row__indicator,
   .radar-utility-button,
   .radar-primary-action,
   .radar-inline-button,
