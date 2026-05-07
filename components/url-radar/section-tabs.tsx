@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Moon02Icon, Refresh01Icon, SlidersHorizontalIcon, Sun03Icon } from "@hugeicons/core-free-icons";
 import type { MainTab, UtilitySection } from "@/components/url-radar/types";
@@ -78,26 +78,27 @@ export function SlidingTabRow<T extends string>({ ariaLabel, buttonClassName, cl
   const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [indicator, setIndicator] = useState<TabIndicatorState>({ left: 0, ready: false, width: 0 });
 
+  const updateIndicator = () => {
+    const activeButton = buttonRefs.current[value];
+    if (!activeButton) return;
+
+    setIndicator((previous) => {
+      const next = {
+        left: activeButton.offsetLeft,
+        ready: true,
+        width: activeButton.offsetWidth
+      };
+
+      return previous.ready === next.ready && previous.left === next.left && previous.width === next.width ? previous : next;
+    });
+  };
+
+  useLayoutEffect(() => {
+    updateIndicator();
+  }, [options, value]);
+
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
-
-    let frame = 0;
-
-    const updateIndicator = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        const activeButton = buttonRefs.current[value];
-        if (!activeButton) return;
-
-        setIndicator({
-          left: activeButton.offsetLeft,
-          ready: true,
-          width: activeButton.offsetWidth
-        });
-      });
-    };
-
-    updateIndicator();
 
     const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateIndicator) : null;
 
@@ -117,7 +118,6 @@ export function SlidingTabRow<T extends string>({ ariaLabel, buttonClassName, cl
     window.addEventListener("resize", updateIndicator);
 
     return () => {
-      window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", updateIndicator);
       resizeObserver?.disconnect();
     };
