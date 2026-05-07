@@ -236,7 +236,7 @@ input {
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
     0 12px 22px rgba(52, 42, 35, 0.04);
   isolation: isolate;
-  overflow: hidden;
+  overflow: visible;
 }
 
 :root[data-theme="dark"] .radar-tab-row {
