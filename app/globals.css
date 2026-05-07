@@ -19,6 +19,11 @@
   --radius-md: 18px;
   --radius-sm: 14px;
   --radius-pill: 999px;
+  --motion-fast: 150ms;
+  --motion-standard: 210ms;
+  --motion-slow: 280ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root[data-theme="dark"] {
@@ -188,7 +193,12 @@ input {
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   background: transparent;
-  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+  transition:
+    background var(--motion-fast) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard),
+    color var(--motion-fast) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-emphasized),
+    box-shadow var(--motion-standard) var(--motion-ease-standard);
 }
 
 .radar-tab-button,
@@ -414,6 +424,20 @@ input {
   transform-origin: center;
 }
 
+.radar-tab-button:active,
+.radar-utility-button:active,
+.radar-chip:active,
+.radar-inline-button:active,
+.radar-primary-action:active,
+.radar-source-pill:active,
+.radar-chip--source:active,
+.radar-close-button:active,
+.radar-bookmark-button:active,
+.radar-icon-toggle:active,
+.radar-settings-tab:active {
+  transform: translateY(0) scale(0.98);
+}
+
 .radar-tab-button:hover,
 .radar-utility-button:hover,
 .radar-chip:hover,
@@ -448,6 +472,54 @@ input {
 
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes radar-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes radar-surface-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes radar-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes radar-bookmark-pop {
+  0% {
+    transform: scale(0.86);
+  }
+
+  55% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
   }
 }
 
@@ -617,6 +689,7 @@ input {
   box-shadow:
     0 5px 12px rgba(52, 42, 35, 0.035),
     inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  animation: radar-content-enter var(--motion-standard) var(--motion-ease-emphasized) both;
 }
 
 :root[data-theme="dark"] .radar-empty-state__bubble {
@@ -634,7 +707,11 @@ input {
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: 0 6px 14px rgba(52, 42, 35, 0.045);
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition:
+    transform var(--motion-standard) var(--motion-ease-emphasized),
+    box-shadow var(--motion-standard) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard),
+    background var(--motion-fast) var(--motion-ease-standard);
   cursor: pointer;
   overflow: hidden;
 }
@@ -805,6 +882,11 @@ input {
 .radar-bookmark-icon {
   width: 18px;
   height: 18px;
+  transition: transform var(--motion-fast) var(--motion-ease-emphasized);
+}
+
+.radar-bookmark-button.is-active .radar-bookmark-icon {
+  animation: radar-bookmark-pop 220ms var(--motion-ease-emphasized);
 }
 
 .radar-job-card__body,
@@ -914,7 +996,11 @@ input {
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     0 6px 12px rgba(52, 42, 35, 0.03);
   cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  transition:
+    background var(--motion-fast) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-standard) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-emphasized);
 }
 
 .radar-checkbox-row:hover {
@@ -952,7 +1038,11 @@ input {
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
-  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  transition:
+    background var(--motion-fast) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-standard) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-emphasized);
 }
 
 .radar-checkbox-row__control::after {
@@ -967,7 +1057,9 @@ input {
   opacity: 0;
   transform: translate(-50%, -58%) rotate(45deg) scale(0.72);
   transform-origin: center;
-  transition: opacity 140ms ease, transform 140ms ease;
+  transition:
+    opacity var(--motion-fast) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-emphasized);
 }
 
 .radar-checkbox-row__input:focus-visible + .radar-checkbox-row__control {
@@ -1074,11 +1166,31 @@ input {
   box-shadow:
     0 10px 22px rgba(56, 46, 38, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition:
+    transform var(--motion-standard) var(--motion-ease-emphasized),
+    border-color var(--motion-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-standard) var(--motion-ease-standard),
+    background var(--motion-fast) var(--motion-ease-standard);
 }
 
 :root[data-theme="dark"] .radar-source-card {
   background: var(--surface-soft);
   border-color: rgba(238, 225, 213, 0.1);
+  box-shadow: none;
+}
+
+.radar-source-card:hover,
+.radar-source-card:focus-within {
+  transform: translateY(-1px);
+  border-color: rgba(74, 64, 57, 0.2);
+  box-shadow:
+    0 14px 28px rgba(56, 46, 38, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+:root[data-theme="dark"] .radar-source-card:hover,
+:root[data-theme="dark"] .radar-source-card:focus-within {
+  border-color: rgba(238, 225, 213, 0.16);
   box-shadow: none;
 }
 
@@ -1105,6 +1217,7 @@ input {
   padding: clamp(18px, 4vw, 40px);
   background: rgba(31, 26, 22, 0.18);
   backdrop-filter: blur(8px);
+  animation: radar-fade-in var(--motion-standard) var(--motion-ease-standard) both;
 }
 
 .radar-modal {
@@ -1121,6 +1234,7 @@ input {
   box-shadow:
     0 28px 70px rgba(36, 31, 27, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: radar-surface-enter var(--motion-slow) var(--motion-ease-emphasized) both;
 }
 
 :root[data-theme="dark"] .radar-modal,
@@ -1212,6 +1326,7 @@ input {
   border-radius: 18px;
   background: color-mix(in srgb, var(--surface) 84%, white 16%);
   box-shadow: 0 10px 24px rgba(43, 35, 30, 0.06);
+  animation: radar-content-enter var(--motion-standard) var(--motion-ease-emphasized) both;
 }
 
 :root[data-theme="dark"] .radar-filter-impact-banner {
@@ -1294,6 +1409,7 @@ input {
   padding: 12px;
   background: rgba(31, 26, 22, 0.18);
   backdrop-filter: blur(6px);
+  animation: radar-fade-in var(--motion-fast) var(--motion-ease-standard) both;
 }
 
 .radar-detail-dialog {
@@ -1307,6 +1423,11 @@ input {
   box-shadow:
     0 20px 48px rgba(36, 31, 27, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.46);
+  animation: radar-surface-enter var(--motion-standard) var(--motion-ease-emphasized) both;
+}
+
+.radar-settings-panel {
+  animation: radar-content-enter var(--motion-standard) var(--motion-ease-emphasized) both;
 }
 
 .radar-attempt-row {
@@ -1344,6 +1465,62 @@ input {
 @media (prefers-reduced-motion: reduce) {
   .radar-primary-action.is-loading .radar-button-icon.is-spinning {
     animation-duration: 1.6s;
+  }
+
+  .radar-modal-backdrop,
+  .radar-modal,
+  .radar-detail-overlay,
+  .radar-detail-dialog,
+  .radar-settings-panel,
+  .radar-empty-state__bubble,
+  .radar-filter-impact-banner,
+  .radar-bookmark-button.is-active .radar-bookmark-icon {
+    animation: none;
+  }
+
+  .radar-tab-button,
+  .radar-utility-button,
+  .radar-primary-action,
+  .radar-inline-button,
+  .radar-chip,
+  .radar-bookmark-button,
+  .radar-close-button,
+  .radar-icon-toggle,
+  .radar-settings-tab,
+  .radar-job-card,
+  .radar-checkbox-row,
+  .radar-checkbox-row__control,
+  .radar-source-card,
+  .radar-bookmark-icon {
+    transition-duration: 1ms;
+  }
+
+  .radar-tab-button:hover,
+  .radar-utility-button:hover,
+  .radar-chip:hover,
+  .radar-inline-button:hover,
+  .radar-primary-action:hover,
+  .radar-source-pill:hover,
+  .radar-chip--source:hover,
+  .radar-close-button:hover,
+  .radar-bookmark-button:hover,
+  .radar-job-card:hover,
+  .radar-icon-toggle:hover,
+  .radar-settings-tab:hover,
+  .radar-source-card:hover,
+  .radar-source-card:focus-within,
+  .radar-tab-button:active,
+  .radar-utility-button:active,
+  .radar-chip:active,
+  .radar-inline-button:active,
+  .radar-primary-action:active,
+  .radar-source-pill:active,
+  .radar-chip--source:active,
+  .radar-close-button:active,
+  .radar-bookmark-button:active,
+  .radar-icon-toggle:active,
+  .radar-settings-tab:active {
+    transform: none;
   }
 }
 

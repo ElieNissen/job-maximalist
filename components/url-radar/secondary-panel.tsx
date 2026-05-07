@@ -650,26 +650,28 @@ export function SecondaryPanel({ openSection, onClose, config, jobs, status, sav
           <SettingsTabButton label="Filtres avancés" active={settingsTab === "filters"} onClick={() => setSettingsTab("filters")} />
         </div>
 
-        {settingsTab === "urls" ? (
-          <UrlsSettingsPanel draftConfig={draftConfig} setDraftConfig={setDraftConfig} />
-        ) : settingsTab === "sources" ? (
-          <div className="radar-source-list">
-            {draftConfig.urls.map((rawUrl, index) => {
-              const url = rawUrl.trim();
-              return (
-                <SourceDiagnosticsCard
-                  key={`source-${index}`}
-                  url={url}
-                  runSummary={url ? status.lastRunSummary[url] : undefined}
-                  lastRunAt={status.lastRunAt}
-                  onOpenDiagnostic={setDiagnostic}
-                />
-              );
-            })}
-          </div>
-        ) : (
-          <FiltersPanel jobs={jobs} currentFilters={currentFilters} draftConfig={draftConfig} setDraftConfig={setDraftConfig} />
-        )}
+        <div key={settingsTab} className="radar-settings-panel">
+          {settingsTab === "urls" ? (
+            <UrlsSettingsPanel draftConfig={draftConfig} setDraftConfig={setDraftConfig} />
+          ) : settingsTab === "sources" ? (
+            <div className="radar-source-list">
+              {draftConfig.urls.map((rawUrl, index) => {
+                const url = rawUrl.trim();
+                return (
+                  <SourceDiagnosticsCard
+                    key={`source-${index}`}
+                    url={url}
+                    runSummary={url ? status.lastRunSummary[url] : undefined}
+                    lastRunAt={status.lastRunAt}
+                    onOpenDiagnostic={setDiagnostic}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <FiltersPanel jobs={jobs} currentFilters={currentFilters} draftConfig={draftConfig} setDraftConfig={setDraftConfig} />
+          )}
+        </div>
 
         <div className="radar-inline-actions radar-inline-actions--footer">
           <button type="button" className="radar-inline-button" onClick={onClose}>
