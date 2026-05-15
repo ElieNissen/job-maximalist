@@ -457,8 +457,8 @@ input {
 }
 
 :root[data-theme="dark"] .radar-primary-action {
-  background: #573321;
-  color: #fff;
+  background: #f4efe8;
+  color: #171514;
   box-shadow: none;
 }
 
