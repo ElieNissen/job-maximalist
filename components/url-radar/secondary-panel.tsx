@@ -1,6 +1,13 @@
 ﻿import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon, Layers02Icon } from "@hugeicons/core-free-icons";
+import type { CSSProperties } from "react";
+import {
+  Add01Icon,
+  Cancel01Icon,
+  Layers02Icon,
+  Tick02Icon,
+  Undo02Icon
+} from "@hugeicons/core-free-icons";
 import { SlidingTabRow, type SlidingTabOption } from "@/components/url-radar/section-tabs";
 import { getHostFromUrl, getUrlSourceMeta } from "@/lib/url-radar-sources";
 import {
@@ -8,7 +15,6 @@ import {
   sanitizeUrlRadarFilters,
   URL_RADAR_CONTRACT_CHOICES,
   URL_RADAR_DEFAULT_FILTERS,
-  URL_RADAR_POSTED_SINCE_CHOICES,
   URL_RADAR_TOGGLE_GROUPS
 } from "@/lib/url-radar-filters";
 import { matchesFilters } from "@/lib/filtering";
@@ -200,16 +206,21 @@ function DiagnosticOverlay({ diagnostic, onClose }: { diagnostic: DiagnosticStat
 
 function EditableTokenList({
   label,
+  addLabel,
   placeholder,
   items,
   onChange
 }: {
   label: string;
+  addLabel: string;
   placeholder: string;
   items: string[];
   onChange: (items: string[]) => void;
 }) {
   const [inputValue, setInputValue] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [newTokenKey, setNewTokenKey] = useState<string | null>(null);
+  const inputCharacterWidth = Math.min(Math.max(inputValue.length + 12, placeholder.length + 3, 22), 52);
 
   const addItem = () => {
     const value = inputValue.trim();
@@ -217,54 +228,83 @@ function EditableTokenList({
     const key = normalizeKey(value);
     if (items.some((item) => normalizeKey(item) === key)) {
       setInputValue("");
+      setIsAdding(false);
       return;
     }
     onChange([...items, value]);
     setInputValue("");
+    setIsAdding(false);
+    setNewTokenKey(key);
   };
 
+  const removeItem = (item: string) => {
+    onChange(items.filter((current) => normalizeKey(current) !== normalizeKey(item)));
+  };
+
+  useEffect(() => {
+    if (!newTokenKey) return undefined;
+    const timeout = window.setTimeout(() => setNewTokenKey(null), 420);
+    return () => window.clearTimeout(timeout);
+  }, [newTokenKey]);
+
   return (
-    <section className="radar-filter-group">
-      <div className="radar-filter-group__header">
-        <strong>{label}</strong>
+    <section className="radar-filter-group radar-token-group">
+      <div className="radar-token-group__header">
+        <div className="radar-token-group__title-row">
+          <strong>{label}</strong>
+        </div>
       </div>
 
-      <div className="radar-filter-list">
+      <div className="radar-filter-token-cloud" aria-label={label}>
         {items.length > 0 ? (
           items.map((item) => (
-            <div key={`${label}-${item}`} className="radar-filter-token-row">
+            <span key={`${label}-${item}`} className={`radar-filter-token${normalizeKey(item) === newTokenKey ? " is-new" : ""}`}>
               <span>{item}</span>
-              <button
-                type="button"
-                className="radar-inline-button"
-                onClick={() => onChange(items.filter((current) => normalizeKey(current) !== normalizeKey(item)))}
-              >
-                Suppr.
+              <button type="button" className="radar-filter-token__remove" onClick={() => removeItem(item)} aria-label={`Supprimer ${item}`}>
+                <HugeiconsIcon icon={Cancel01Icon} size={13} strokeWidth={2.4} />
               </button>
-            </div>
+            </span>
           ))
         ) : (
-          <div className="radar-secondary-note">Aucun élément</div>
+          <span className="radar-token-empty">Aucun filtre</span>
         )}
       </div>
 
-      <div className="radar-url-row radar-url-row--compact">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(event) => setInputValue(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              addItem();
-            }
+      {isAdding ? (
+        <form
+          className="radar-token-add is-open"
+          style={{ "--token-input-width": `${inputCharacterWidth}ch` } as CSSProperties}
+          onSubmit={(event) => {
+            event.preventDefault();
+            addItem();
           }}
-          placeholder={placeholder}
-        />
-        <button type="button" className="radar-inline-button" onClick={addItem}>
-          Ajouter
+        >
+          <div className="radar-token-add__field">
+            <input
+              type="text"
+              value={inputValue}
+              autoFocus
+              onChange={(event) => setInputValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  setInputValue("");
+                  setIsAdding(false);
+                }
+              }}
+              placeholder={placeholder}
+            />
+            <button type="submit" className="radar-token-add__save" aria-label={`Valider ${label}`}>
+              <HugeiconsIcon icon={Tick02Icon} size={16} strokeWidth={2.4} aria-hidden="true" />
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button type="button" className="radar-filter-action radar-token-add-trigger" onClick={() => setIsAdding(true)}>
+          <HugeiconsIcon icon={Add01Icon} size={15} strokeWidth={2.2} aria-hidden="true" />
+          {addLabel}
         </button>
-      </div>
+      )}
     </section>
   );
 }
@@ -272,14 +312,16 @@ function EditableTokenList({
 function ToggleRow({
   label,
   checked,
-  onChange
+  onChange,
+  compact = false
 }: {
   label: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  compact?: boolean;
 }) {
   return (
-    <label className={`radar-checkbox-row${checked ? " is-checked" : ""}`}>
+    <label className={`radar-checkbox-row${checked ? " is-checked" : ""}${compact ? " radar-checkbox-row--compact" : ""}`}>
       <input className="radar-checkbox-row__input" type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
       <span className="radar-checkbox-row__control" aria-hidden="true" />
       <span className="radar-checkbox-row__label">{label}</span>
@@ -372,91 +414,34 @@ function FiltersPanel({
 
   const allowSeniorLead = !hasExcludedKeywords(filters.keywordsExclude, URL_RADAR_TOGGLE_GROUPS.seniorLead);
   const allowManagement = !hasExcludedKeywords(filters.keywordsExclude, URL_RADAR_TOGGLE_GROUPS.management);
-  const allowInternships = !hasExcludedKeywords(filters.keywordsExclude, URL_RADAR_TOGGLE_GROUPS.internships);
 
   return (
     <div className="radar-form-grid radar-form-grid--filters">
       {hasFilterChanges ? <FilterImpactBanner summary={impactSummary} /> : null}
 
-      <section className="radar-filter-group">
-        <div className="radar-filter-group__header">
-          <strong>Options rapides</strong>
-          <span className="radar-secondary-note">Raccourcis sûrs basés sur les exclusions actuelles.</span>
+      <div className="radar-filter-reset-row">
+        <button
+          type="button"
+          className="radar-filter-action radar-inline-button--filters-reset"
+          onClick={() => setDraftConfig((prev) => ({ ...prev, filters: cloneUrlRadarFilters(URL_RADAR_DEFAULT_FILTERS) }))}
+        >
+          <HugeiconsIcon icon={Undo02Icon} size={15} strokeWidth={2.1} aria-hidden="true" />
+          Réinitialiser les filtres
+        </button>
+      </div>
+
+      <section className="radar-filter-group radar-filter-preferences">
+        <div className="radar-filter-preferences__header">
+          <strong>Types d’offres acceptés</strong>
         </div>
-        <div className="radar-filter-group__checks">
-          <ToggleRow
-            label="Autoriser senior / lead"
-            checked={allowSeniorLead}
-            onChange={(checked) =>
-              setDraftConfig((prev) => ({
-                ...prev,
-                filters: {
-                  ...prev.filters,
-                  keywordsExclude: toggleExcludedKeywords(prev.filters.keywordsExclude, URL_RADAR_TOGGLE_GROUPS.seniorLead, checked)
-                }
-              }))
-            }
-          />
-          <ToggleRow
-            label="Autoriser management"
-            checked={allowManagement}
-            onChange={(checked) =>
-              setDraftConfig((prev) => ({
-                ...prev,
-                filters: {
-                  ...prev.filters,
-                  keywordsExclude: toggleExcludedKeywords(prev.filters.keywordsExclude, URL_RADAR_TOGGLE_GROUPS.management, checked)
-                }
-              }))
-            }
-          />
-          <ToggleRow
-            label="Autoriser stages / alternance"
-            checked={allowInternships}
-            onChange={(checked) =>
-              setDraftConfig((prev) => ({
-                ...prev,
-                filters: {
-                  ...prev.filters,
-                  keywordsExclude: toggleExcludedKeywords(prev.filters.keywordsExclude, URL_RADAR_TOGGLE_GROUPS.internships, checked)
-                }
-              }))
-            }
-          />
-        </div>
-      </section>
 
-      <EditableTokenList
-        label="Mots inclus"
-        placeholder="Ajouter un mot ou une expression"
-        items={filters.keywordsInclude}
-        onChange={(keywordsInclude) => setDraftConfig((prev) => ({ ...prev, filters: { ...prev.filters, keywordsInclude } }))}
-      />
-
-      <EditableTokenList
-        label="Mots exclus"
-        placeholder="Ajouter un mot ou une expression à exclure"
-        items={filters.keywordsExclude}
-        onChange={(keywordsExclude) => setDraftConfig((prev) => ({ ...prev, filters: { ...prev.filters, keywordsExclude } }))}
-      />
-
-      <EditableTokenList
-        label="Localisations"
-        placeholder="Ajouter une ville, région ou zone"
-        items={filters.locations}
-        onChange={(locations) => setDraftConfig((prev) => ({ ...prev, filters: { ...prev.filters, locations } }))}
-      />
-
-      <section className="radar-filter-group">
-        <div className="radar-filter-group__header">
-          <strong>Contrats</strong>
-        </div>
-        <div className="radar-filter-group__checks">
+        <div className="radar-filter-preferences__row">
           {URL_RADAR_CONTRACT_CHOICES.map((contractType) => (
             <ToggleRow
               key={contractType}
               label={contractType}
               checked={filters.contractTypes.includes(contractType)}
+              compact
               onChange={(checked) =>
                 setDraftConfig((prev) => ({
                   ...prev,
@@ -470,45 +455,62 @@ function FiltersPanel({
               }
             />
           ))}
-        </div>
-      </section>
-
-      <section className="radar-filter-group">
-        <div className="radar-filter-group__header">
-          <strong>Ancienneté max</strong>
-          <span className="radar-secondary-note">Laisse sur aucune limite pour conserver le comportement actuel.</span>
-        </div>
-        <label className="radar-field">
-          <select
-            value={filters.postedSinceHours ?? ""}
-            onChange={(event) => {
-              const nextValue = event.target.value ? Number(event.target.value) : undefined;
+          <span className="radar-filter-preferences__divider" aria-hidden="true" />
+          <ToggleRow
+            label="Senior / lead"
+            checked={allowSeniorLead}
+            compact
+            onChange={(checked) =>
               setDraftConfig((prev) => ({
                 ...prev,
                 filters: {
                   ...prev.filters,
-                  postedSinceHours: Number.isFinite(nextValue) ? nextValue : undefined
+                  keywordsExclude: toggleExcludedKeywords(prev.filters.keywordsExclude, URL_RADAR_TOGGLE_GROUPS.seniorLead, checked)
                 }
-              }));
-            }}
-          >
-            {URL_RADAR_POSTED_SINCE_CHOICES.map((option) => (
-              <option key={option.label} value={option.value ?? ""}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+              }))
+            }
+          />
+          <ToggleRow
+            label="Management"
+            checked={allowManagement}
+            compact
+            onChange={(checked) =>
+              setDraftConfig((prev) => ({
+                ...prev,
+                filters: {
+                  ...prev.filters,
+                  keywordsExclude: toggleExcludedKeywords(prev.filters.keywordsExclude, URL_RADAR_TOGGLE_GROUPS.management, checked)
+                }
+              }))
+            }
+          />
+        </div>
       </section>
 
-      <div className="radar-inline-actions">
-        <button
-          type="button"
-          className="radar-inline-button"
-          onClick={() => setDraftConfig((prev) => ({ ...prev, filters: cloneUrlRadarFilters(URL_RADAR_DEFAULT_FILTERS) }))}
-        >
-          Réinitialiser aux filtres par défaut
-        </button>
+      <div className="radar-token-groups-grid">
+        <EditableTokenList
+          label="Mots inclus"
+          addLabel="Ajouter un mot recherché"
+          placeholder="Mot recherché"
+          items={filters.keywordsInclude}
+          onChange={(keywordsInclude) => setDraftConfig((prev) => ({ ...prev, filters: { ...prev.filters, keywordsInclude } }))}
+        />
+
+        <EditableTokenList
+          label="Mots exclus"
+          addLabel="Ajouter un mot exclu"
+          placeholder="Mot à exclure"
+          items={filters.keywordsExclude}
+          onChange={(keywordsExclude) => setDraftConfig((prev) => ({ ...prev, filters: { ...prev.filters, keywordsExclude } }))}
+        />
+
+        <EditableTokenList
+          label="Localisations"
+          addLabel="Ajouter une zone"
+          placeholder="Zone"
+          items={filters.locations}
+          onChange={(locations) => setDraftConfig((prev) => ({ ...prev, filters: { ...prev.filters, locations } }))}
+        />
       </div>
     </div>
   );

@@ -577,6 +577,35 @@ input {
   }
 }
 
+@keyframes radar-token-field-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes radar-token-arrive {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.035);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes radar-chip-smooth-select {
   0% {
     transform: translateY(0) scale(0.985);
@@ -644,6 +673,7 @@ input {
 .radar-settings-panel {
   display: grid;
   gap: 0;
+  min-height: 0;
   will-change: transform, opacity;
   animation: radar-content-enter var(--motion-slow) var(--motion-ease-emphasized) both;
 }
@@ -1093,6 +1123,24 @@ input {
     transform var(--motion-fast) var(--motion-ease-emphasized);
 }
 
+.radar-checkbox-row--compact {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.radar-checkbox-row--compact .radar-checkbox-row__control {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+}
+
+.radar-checkbox-row--compact .radar-checkbox-row__label {
+  font-size: 0.88rem;
+}
+
 .radar-checkbox-row:hover {
   transform: translateY(-1px);
   border-color: var(--border-strong);
@@ -1236,6 +1284,10 @@ input {
 .radar-inline-button {
   padding: 9px 14px;
   background: color-mix(in srgb, var(--surface-soft) 88%, white 12%);
+  color: var(--muted-strong);
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 .radar-inline-button--diagnostic {
@@ -1250,12 +1302,15 @@ input {
   display: grid;
   gap: 12px;
   padding: 14px 16px;
-  border: 1px solid rgba(74, 64, 57, 0.12);
+  border: 1px solid rgba(74, 64, 57, 0.16);
   border-radius: 16px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 74%, white 26%) 0%, color-mix(in srgb, var(--surface-soft) 76%, white 24%) 100%);
-  box-shadow:
-    0 10px 22px rgba(56, 46, 38, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 96%, var(--surface-soft) 4%) 0%,
+    color-mix(in srgb, var(--surface) 87%, var(--surface-soft) 13%) 100%
+  );
+  background-clip: padding-box;
+  box-shadow: 0 1px 2px rgba(56, 46, 38, 0.025);
 }
 
 :root[data-theme="dark"] .radar-source-card {
@@ -1305,6 +1360,27 @@ input {
     0 28px 70px rgba(36, 31, 27, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
   animation: radar-surface-enter var(--motion-slow) var(--motion-ease-emphasized) both;
+}
+
+.radar-modal--settings {
+  width: min(100%, 1080px);
+  height: min(980px, calc(100vh - 18px));
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.radar-modal--settings .radar-modal__header {
+  align-items: center;
+}
+
+.radar-modal--settings .radar-modal__title-wrap {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.radar-modal--settings .radar-modal__title {
+  font-size: clamp(1.38rem, 1.8vw, 1.65rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
 }
 
 :root[data-theme="dark"] .radar-modal,
@@ -1359,7 +1435,7 @@ input {
   align-content: start;
   overflow: auto;
   max-height: calc(100vh - 250px);
-  padding-right: 4px;
+  padding: 4px 10px 14px;
 }
 
 .radar-form-grid {
@@ -1368,12 +1444,15 @@ input {
   padding-right: 4px;
 }
 
+.radar-modal--settings .radar-form-grid,
+.radar-modal--settings .radar-source-list {
+  min-height: 0;
+  max-height: none;
+}
+
 .radar-form-grid--filters {
-  gap: 16px;
-  max-height: calc(100vh - 286px);
-  padding-right: 6px;
-  padding-bottom: 10px;
-  padding-top: 0;
+  gap: 30px;
+  padding: 4px 10px 16px;
 }
 
 .radar-filter-impact-sticky {
@@ -1431,18 +1510,299 @@ input {
   gap: 4px;
 }
 
+.radar-form-grid--filters .radar-filter-group {
+  padding: 18px;
+  border: 1px solid rgba(74, 64, 57, 0.16);
+  border-radius: 20px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 96%, var(--surface-soft) 4%) 0%,
+    color-mix(in srgb, var(--surface) 87%, var(--surface-soft) 13%) 100%
+  );
+  background-clip: padding-box;
+  box-shadow: 0 1px 2px rgba(56, 46, 38, 0.025);
+}
+
+:root[data-theme="dark"] .radar-form-grid--filters .radar-filter-group {
+  border-color: rgba(238, 225, 213, 0.1);
+  background: var(--surface-soft);
+  box-shadow: none;
+}
+
 .radar-filter-group__checks {
   display: grid;
   gap: 10px;
 }
 
-.radar-filter-group__checks--grid {
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+.radar-form-grid--filters .radar-filter-preferences {
+  gap: 16px;
+}
+
+.radar-filter-preferences__header {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+:root[data-theme="dark"] .radar-filter-preferences__header {
+  border-bottom-color: rgba(238, 225, 213, 0.1);
+}
+
+.radar-filter-preferences__header > strong,
+.radar-token-group__title-row strong {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+}
+
+.radar-filter-reset-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.radar-filter-preferences__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.radar-filter-preferences__divider {
+  width: 1px;
+  height: 26px;
+  margin-inline: 4px;
+  background: var(--border-strong);
+}
+
+:root[data-theme="dark"] .radar-filter-preferences__divider {
+  background: rgba(238, 225, 213, 0.18);
+}
+
+.radar-token-groups-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+  padding-top: 0;
+}
+
+.radar-form-grid--filters .radar-token-group {
+  align-content: start;
+  gap: 14px;
+}
+
+.radar-token-groups-grid .radar-token-group + .radar-token-group {
+  margin-top: 0;
+}
+
+.radar-token-group__header {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+:root[data-theme="dark"] .radar-token-group__header {
+  border-bottom-color: rgba(238, 225, 213, 0.1);
+}
+
+.radar-token-group__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text);
 }
 
 .radar-filter-list {
   display: grid;
   gap: 8px;
+}
+
+.radar-filter-token-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 38px;
+}
+
+.radar-filter-token,
+.radar-token-empty {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  max-width: 100%;
+  padding: 6px 8px 6px 11px;
+  border: 1px solid rgba(74, 64, 57, 0.12);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-soft) 74%, white 26%);
+  color: var(--muted-strong);
+  font-size: 0.84rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.radar-filter-token span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.radar-filter-token__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-right: -3px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: color-mix(in srgb, var(--muted-strong) 78%, transparent 22%);
+  transition:
+    background var(--motion-fast) var(--motion-ease-standard),
+    color var(--motion-fast) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-emphasized);
+}
+
+.radar-filter-token__remove:hover {
+  background: rgba(74, 64, 57, 0.08);
+  color: var(--text);
+  transform: scale(1.05);
+}
+
+.radar-filter-token.is-new {
+  animation: radar-token-arrive 380ms var(--motion-ease-emphasized) both;
+}
+
+.radar-token-empty {
+  padding-inline: 12px;
+  border-style: dashed;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.radar-filter-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  width: fit-content;
+  padding: 9px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-soft) 88%, white 12%);
+  color: var(--muted-strong);
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition:
+    background var(--motion-fast) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard),
+    color var(--motion-fast) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-emphasized);
+}
+
+.radar-filter-action:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  background: color-mix(in srgb, var(--surface-soft) 78%, white 22%);
+  color: var(--text);
+}
+
+.radar-token-add {
+  display: block;
+  width: min(100%, calc(var(--token-input-width, 24ch) + 58px));
+  min-width: min(100%, 248px);
+  max-width: 620px;
+  overflow: hidden;
+  transition: width var(--motion-standard) var(--motion-ease-emphasized);
+  animation: radar-token-field-open 220ms var(--motion-ease-emphasized) both;
+}
+
+.radar-token-add__field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 92%, white 8%);
+}
+
+.radar-token-add__field input {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+
+.radar-token-add__save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--surface-soft) 88%, white 12%);
+  color: var(--muted-strong);
+  font-weight: 700;
+  transition:
+    background var(--motion-fast) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard),
+    color var(--motion-fast) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-emphasized);
+}
+
+.radar-token-add__save:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  background: color-mix(in srgb, var(--surface-soft) 78%, white 22%);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .radar-filter-token,
+:root[data-theme="dark"] .radar-token-empty {
+  border-color: rgba(238, 225, 213, 0.12);
+  background: var(--surface);
+}
+
+:root[data-theme="dark"] .radar-filter-token__remove:hover {
+  background: rgba(238, 225, 213, 0.08);
+}
+
+:root[data-theme="dark"] .radar-token-add__field {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(238, 225, 213, 0.12);
+}
+
+:root[data-theme="dark"] .radar-filter-action,
+:root[data-theme="dark"] .radar-token-add__save {
+  background: var(--surface);
+  border-color: rgba(238, 225, 213, 0.12);
+  color: var(--muted-strong);
+}
+
+:root[data-theme="dark"] .radar-filter-action:hover,
+:root[data-theme="dark"] .radar-token-add__save:hover {
+  background: var(--surface-raised);
+  border-color: rgba(238, 225, 213, 0.18);
+  color: var(--text);
 }
 
 .radar-filter-token-row {
@@ -1544,6 +1904,8 @@ input {
   .radar-tab-button.is-active,
   .radar-chip--filter.is-filter-entering,
   .radar-chip--filter.is-filter-leaving,
+  .radar-filter-token.is-new,
+  .radar-token-add,
   .radar-bookmark-button.is-active .radar-bookmark-icon {
     animation: none;
   }
@@ -1561,6 +1923,9 @@ input {
   .radar-job-card,
   .radar-checkbox-row,
   .radar-checkbox-row__control,
+  .radar-token-add__save,
+  .radar-token-add-trigger,
+  .radar-filter-token__remove,
   .radar-source-card,
   .radar-bookmark-icon {
     transition-duration: 1ms;
@@ -1578,6 +1943,9 @@ input {
   .radar-job-card:hover,
   .radar-icon-toggle:hover,
   .radar-settings-tab:hover,
+  .radar-token-add__save:hover,
+  .radar-token-add-trigger:hover,
+  .radar-filter-token__remove:hover,
   .radar-source-card:hover,
   .radar-source-card:focus-within,
   .radar-tab-button:active,
@@ -1590,7 +1958,10 @@ input {
   .radar-close-button:active,
   .radar-bookmark-button:active,
   .radar-icon-toggle:active,
-  .radar-settings-tab:active {
+  .radar-settings-tab:active,
+  .radar-token-add__save:active,
+  .radar-token-add-trigger:active,
+  .radar-filter-token__remove:active {
     transform: none;
   }
 }
@@ -1626,5 +1997,11 @@ input {
   .radar-modal,
   .radar-detail-dialog {
     padding: 16px;
+  }
+
+  .radar-filter-preferences__divider {
+    width: 100%;
+    height: 1px;
+    margin: 2px 0;
   }
 }
