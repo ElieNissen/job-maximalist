@@ -1357,6 +1357,10 @@ input {
   animation: radar-fade-in var(--motion-standard) var(--motion-ease-standard) both;
 }
 
+.radar-modal-backdrop:has(.radar-modal--settings) {
+  padding-block: clamp(8px, 1.5vw, 14px);
+}
+
 .radar-modal {
   position: relative;
   width: min(100%, 980px);
@@ -1376,7 +1380,8 @@ input {
 
 .radar-modal--settings {
   width: min(100%, 1080px);
-  height: min(980px, calc(100vh - 18px));
+  height: min(1060px, calc(100vh - 16px));
+  max-height: calc(100vh - 16px);
   grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
 
