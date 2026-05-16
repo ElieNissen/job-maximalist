@@ -1547,28 +1547,23 @@ input {
 }
 
 .radar-form-grid--filters .radar-filter-preferences {
-  gap: 16px;
+  gap: 18px;
 }
 
 .radar-filter-preferences__header {
   display: flex;
   align-items: center;
-  min-height: 30px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-:root[data-theme="dark"] .radar-filter-preferences__header {
-  border-bottom-color: rgba(238, 225, 213, 0.1);
+  min-height: 24px;
+  padding-bottom: 0;
 }
 
 .radar-filter-preferences__header > strong,
 .radar-token-group__title-row strong {
   color: var(--text);
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: -0.012em;
-  line-height: 1.2;
+  font-size: 1.06rem;
+  font-weight: 760;
+  letter-spacing: -0.018em;
+  line-height: 1.15;
 }
 
 .radar-filter-reset-row {
@@ -1603,7 +1598,7 @@ input {
 
 .radar-form-grid--filters .radar-token-group {
   align-content: start;
-  gap: 14px;
+  gap: 16px;
 }
 
 .radar-token-groups-grid .radar-token-group + .radar-token-group {
@@ -1613,13 +1608,8 @@ input {
 .radar-token-group__header {
   display: flex;
   align-items: center;
-  min-height: 30px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-:root[data-theme="dark"] .radar-token-group__header {
-  border-bottom-color: rgba(238, 225, 213, 0.1);
+  min-height: 24px;
+  padding-bottom: 0;
 }
 
 .radar-token-group__title-row {
