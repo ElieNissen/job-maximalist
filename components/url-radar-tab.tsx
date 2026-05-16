@@ -65,6 +65,7 @@ export default function UrlRadarTab() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>("visible");
   const [visibleSourceFilter, setVisibleSourceFilter] = useState<string | null>(null);
   const [excludedSourceFilter, setExcludedSourceFilter] = useState<string | null>(null);
@@ -164,6 +165,8 @@ export default function UrlRadarTab() {
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Load failed");
+    } finally {
+      setHasLoadedOnce(true);
     }
   }, []);
 
@@ -338,7 +341,7 @@ export default function UrlRadarTab() {
         onSaveConfig={saveConfig}
       />
 
-      <div className="radar-content-shell">
+      <div className={`radar-content-shell${hasLoadedOnce ? " is-ready" : " is-preparing"}`}>
         <div className="radar-primary-filters">
           <MainTabSwitch currentTab={mainTab} onChange={setMainTab} />
         </div>

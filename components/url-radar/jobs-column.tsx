@@ -1,5 +1,6 @@
 ﻿import type { ReactNode } from "react";
 import { JobCard } from "@/components/url-radar/job-card";
+import type { CSSProperties } from "react";
 import type { JobCluster, MainTab } from "@/components/url-radar/types";
 import { formatRelativeSameDayOrDate } from "@/components/url-radar/utils";
 
@@ -24,6 +25,25 @@ function RefreshMeta({ stamp }: { stamp?: string | null }) {
   );
 }
 
+function AnimatedWords({ text }: { text: string }) {
+  const words = text.split(/\s+/).filter(Boolean);
+
+  return (
+    <span className="radar-text-reveal" aria-label={text}>
+      {words.map((word, index) => (
+        <span
+          key={`${word}-${index}`}
+          aria-hidden="true"
+          className="radar-text-reveal__word"
+          style={{ "--word-delay": `${360 + index * 60}ms` } as CSSProperties}
+        >
+          {word}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function EmptyState({
   stamp,
   variant
@@ -34,7 +54,9 @@ function EmptyState({
   if (variant === "no-excluded") {
     return (
       <div className="radar-empty-state">
-        <strong>Aucune offre exclue</strong>
+        <strong>
+          <AnimatedWords text="Aucune offre exclue" />
+        </strong>
       </div>
     );
   }
@@ -43,7 +65,9 @@ function EmptyState({
     <div className="radar-empty-state radar-empty-state--graphic">
       <div className="radar-empty-state__callout">
         <span className="radar-empty-state__bubble">
-          <span>{variant === "no-visible" ? "Aucune offre détectée" : "Aucune nouvelle offre"}</span>
+          <span>
+            <AnimatedWords text={variant === "no-visible" ? "Aucune offre détectée" : "Aucune nouvelle offre"} />
+          </span>
           <RefreshMeta stamp={stamp} />
         </span>
       </div>
@@ -56,7 +80,11 @@ function SectionBlock({ heading, stamp, children }: { heading: string; stamp?: s
     <section className="radar-list-section">
       {heading || stamp ? (
         <div className="radar-list-section__header">
-          {heading ? <h2 className="radar-section-title">{heading}</h2> : null}
+          {heading ? (
+            <h2 className="radar-section-title">
+              <AnimatedWords text={heading} />
+            </h2>
+          ) : null}
           <RefreshMeta stamp={stamp} />
         </div>
       ) : null}

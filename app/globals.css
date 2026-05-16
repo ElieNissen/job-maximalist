@@ -109,6 +109,7 @@ input {
     0 6px 14px rgba(47, 38, 31, 0.025),
     inset 0 -1px 0 rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(12px);
+  animation: radar-page-nav-enter 420ms var(--motion-ease-emphasized) both;
 }
 
 :root[data-theme="dark"] .radar-navigation-band {
@@ -129,6 +130,20 @@ input {
   width: min(100%, 1040px);
   margin-inline: auto;
   background: transparent;
+  transition:
+    opacity var(--motion-standard) var(--motion-ease-standard),
+    transform var(--motion-standard) var(--motion-ease-emphasized);
+}
+
+.radar-content-shell.is-preparing {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+.radar-content-shell.is-ready {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .radar-content-shell::before {
@@ -156,6 +171,7 @@ input {
   align-items: center;
   min-width: 0;
   line-height: 0;
+  animation: radar-page-group-enter 460ms var(--motion-ease-emphasized) 70ms both;
 }
 
 .radar-toolbar__logo {
@@ -525,6 +541,7 @@ input {
 .radar-toolbar__actions {
   align-items: center;
   justify-content: flex-end;
+  animation: radar-page-group-enter 460ms var(--motion-ease-emphasized) 125ms both;
 }
 
 .radar-button-icon,
@@ -575,6 +592,54 @@ input {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes radar-page-nav-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes radar-page-group-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.992);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes radar-page-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.988);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes radar-text-word-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -686,10 +751,46 @@ input {
   background: transparent;
 }
 
+.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > * {
+  animation: radar-page-group-enter 420ms var(--motion-ease-emphasized) both;
+}
+
+.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(1) {
+  animation-delay: 260ms;
+}
+
+.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(2) {
+  animation-delay: 295ms;
+}
+
+.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(3) {
+  animation-delay: 330ms;
+}
+
+.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(4) {
+  animation-delay: 365ms;
+}
+
+.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(5) {
+  animation-delay: 400ms;
+}
+
+.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(6) {
+  animation-delay: 435ms;
+}
+
+.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(n + 7) {
+  animation-delay: 470ms;
+}
+
 .radar-primary-filters {
   display: grid;
   gap: 24px;
   padding-top: 12px;
+}
+
+.radar-content-shell.is-ready .radar-primary-filters {
+  animation: radar-page-group-enter 430ms var(--motion-ease-emphasized) 120ms both;
 }
 
 .radar-main-tab-row {
@@ -702,11 +803,18 @@ input {
   gap: 0;
   min-height: 0;
   will-change: transform, opacity;
+}
+
+.radar-settings-panel {
   animation: radar-content-enter var(--motion-slow) var(--motion-ease-emphasized) both;
 }
 
 .radar-main-panel {
   margin-top: 24px;
+}
+
+.radar-content-shell.is-ready .radar-main-panel {
+  animation: radar-page-group-enter 440ms var(--motion-ease-emphasized) 210ms both;
 }
 
 .radar-filter-strip__actions {
@@ -733,6 +841,18 @@ input {
   color: var(--text);
   font-size: clamp(1.05rem, 1.2vw, 1.3rem);
   line-height: 1.15;
+}
+
+.radar-text-reveal {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 0.28em;
+}
+
+.radar-text-reveal__word {
+  display: inline-block;
+  animation: radar-text-word-enter 700ms var(--motion-ease-emphasized) var(--word-delay, 220ms) both;
+  will-change: transform, opacity;
 }
 
 .radar-list-section__header,
@@ -773,6 +893,38 @@ input {
 .radar-job-list {
   display: grid;
   gap: 18px;
+}
+
+.radar-content-shell.is-ready .radar-list-section {
+  animation: radar-page-group-enter 440ms var(--motion-ease-emphasized) 330ms both;
+}
+
+.radar-content-shell.is-ready .radar-job-list > .radar-job-card {
+  animation: radar-page-card-enter 460ms var(--motion-ease-emphasized) both;
+}
+
+.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(1) {
+  animation-delay: 390ms;
+}
+
+.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(2) {
+  animation-delay: 445ms;
+}
+
+.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(3) {
+  animation-delay: 500ms;
+}
+
+.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(4) {
+  animation-delay: 555ms;
+}
+
+.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(5) {
+  animation-delay: 610ms;
+}
+
+.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(n + 6) {
+  animation-delay: 665ms;
 }
 
 .radar-empty-state {
@@ -1899,6 +2051,15 @@ input {
     animation-duration: 1.6s;
   }
 
+  .radar-navigation-band,
+  .radar-toolbar__brand,
+  .radar-toolbar__actions,
+  .radar-content-shell.is-ready .radar-primary-filters,
+  .radar-content-shell.is-ready .radar-main-panel,
+  .radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *,
+  .radar-content-shell.is-ready .radar-list-section,
+  .radar-content-shell.is-ready .radar-job-list > .radar-job-card,
+  .radar-text-reveal__word,
   .radar-modal-backdrop,
   .radar-modal,
   .radar-detail-overlay,
@@ -1918,6 +2079,7 @@ input {
 
   .radar-tab-button,
   .radar-tab-row__indicator,
+  .radar-content-shell,
   .radar-utility-button,
   .radar-primary-action,
   .radar-inline-button,
