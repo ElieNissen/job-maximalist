@@ -328,7 +328,7 @@ function EditableTokenList({
               placeholder={placeholder}
             />
             <button type="submit" className="radar-token-add__save" aria-label={`Valider ${label}`}>
-              <HugeiconsIcon icon={Tick02Icon} size={16} strokeWidth={2.4} aria-hidden="true" />
+              <HugeiconsIcon icon={Tick02Icon} size={18} strokeWidth={2.4} aria-hidden="true" />
             </button>
           </div>
         </form>
