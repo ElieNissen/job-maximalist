@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useRef } from "react";
 import type { CSSProperties } from "react";
 import {
   Add01Icon,
@@ -219,21 +220,50 @@ function EditableTokenList({
 }) {
   const [inputValue, setInputValue] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [newTokenKey, setNewTokenKey] = useState<string | null>(null);
+  const closeTimeoutRef = useRef<number | null>(null);
   const inputCharacterWidth = Math.min(Math.max(inputValue.length + 12, placeholder.length + 3, 22), 52);
+
+  const clearCloseTimeout = () => {
+    if (closeTimeoutRef.current === null) return;
+    window.clearTimeout(closeTimeoutRef.current);
+    closeTimeoutRef.current = null;
+  };
+
+  const openAddField = () => {
+    clearCloseTimeout();
+    setIsClosing(false);
+    setIsAdding(true);
+  };
+
+  const closeAddField = () => {
+    clearCloseTimeout();
+    setIsClosing(true);
+    closeTimeoutRef.current = window.setTimeout(() => {
+      setInputValue("");
+      setIsAdding(false);
+      setIsClosing(false);
+      closeTimeoutRef.current = null;
+    }, 190);
+  };
 
   const addItem = () => {
     const value = inputValue.trim();
-    if (!value) return;
-    const key = normalizeKey(value);
-    if (items.some((item) => normalizeKey(item) === key)) {
-      setInputValue("");
-      setIsAdding(false);
+    if (!value) {
+      closeAddField();
       return;
     }
+    const key = normalizeKey(value);
+    if (items.some((item) => normalizeKey(item) === key)) {
+      closeAddField();
+      return;
+    }
+    clearCloseTimeout();
     onChange([...items, value]);
     setInputValue("");
     setIsAdding(false);
+    setIsClosing(false);
     setNewTokenKey(key);
   };
 
@@ -246,6 +276,10 @@ function EditableTokenList({
     const timeout = window.setTimeout(() => setNewTokenKey(null), 420);
     return () => window.clearTimeout(timeout);
   }, [newTokenKey]);
+
+  useEffect(() => {
+    return () => clearCloseTimeout();
+  }, []);
 
   return (
     <section className="radar-filter-group radar-token-group">
@@ -272,7 +306,7 @@ function EditableTokenList({
 
       {isAdding ? (
         <form
-          className="radar-token-add is-open"
+          className={`radar-token-add${isClosing ? " is-closing" : " is-open"}`}
           style={{ "--token-input-width": `${inputCharacterWidth}ch` } as CSSProperties}
           onSubmit={(event) => {
             event.preventDefault();
@@ -288,8 +322,7 @@ function EditableTokenList({
               onKeyDown={(event) => {
                 if (event.key === "Escape") {
                   event.preventDefault();
-                  setInputValue("");
-                  setIsAdding(false);
+                  closeAddField();
                 }
               }}
               placeholder={placeholder}
@@ -300,7 +333,7 @@ function EditableTokenList({
           </div>
         </form>
       ) : (
-        <button type="button" className="radar-filter-action radar-token-add-trigger" onClick={() => setIsAdding(true)}>
+        <button type="button" className="radar-filter-action radar-token-add-trigger" onClick={openAddField}>
           <HugeiconsIcon icon={Add01Icon} size={15} strokeWidth={2.2} aria-hidden="true" />
           {addLabel}
         </button>

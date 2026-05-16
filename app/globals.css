@@ -589,6 +589,18 @@ input {
   }
 }
 
+@keyframes radar-token-field-close {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-3px) scale(0.985);
+  }
+}
+
 @keyframes radar-token-arrive {
   0% {
     opacity: 0;
@@ -1728,6 +1740,11 @@ input {
   overflow: hidden;
   transition: width var(--motion-standard) var(--motion-ease-emphasized);
   animation: radar-token-field-open 220ms var(--motion-ease-emphasized) both;
+}
+
+.radar-token-add.is-closing {
+  pointer-events: none;
+  animation: radar-token-field-close 180ms var(--motion-ease-standard) both;
 }
 
 .radar-token-add__field {
