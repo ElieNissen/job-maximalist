@@ -53,6 +53,10 @@ body {
   overflow-x: hidden;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -631,6 +635,62 @@ input {
   }
 }
 
+@keyframes radar-results-exit-left {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    filter: blur(7px);
+    transform: translateX(-82px);
+  }
+}
+
+@keyframes radar-results-exit-right {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    filter: blur(7px);
+    transform: translateX(82px);
+  }
+}
+
+@keyframes radar-results-enter-from-left {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateX(-92px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+}
+
+@keyframes radar-results-enter-from-right {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateX(92px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+}
+
 @keyframes radar-text-word-enter {
   from {
     opacity: 0;
@@ -751,35 +811,35 @@ input {
   background: transparent;
 }
 
-.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > * {
+.radar-content-shell.is-entering .radar-filter-strip .radar-chip-row > * {
   animation: radar-page-group-enter 420ms var(--motion-ease-emphasized) both;
 }
 
-.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(1) {
+.radar-content-shell.is-entering .radar-filter-strip .radar-chip-row > *:nth-child(1) {
   animation-delay: 260ms;
 }
 
-.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(2) {
+.radar-content-shell.is-entering .radar-filter-strip .radar-chip-row > *:nth-child(2) {
   animation-delay: 295ms;
 }
 
-.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(3) {
+.radar-content-shell.is-entering .radar-filter-strip .radar-chip-row > *:nth-child(3) {
   animation-delay: 330ms;
 }
 
-.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(4) {
+.radar-content-shell.is-entering .radar-filter-strip .radar-chip-row > *:nth-child(4) {
   animation-delay: 365ms;
 }
 
-.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(5) {
+.radar-content-shell.is-entering .radar-filter-strip .radar-chip-row > *:nth-child(5) {
   animation-delay: 400ms;
 }
 
-.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(6) {
+.radar-content-shell.is-entering .radar-filter-strip .radar-chip-row > *:nth-child(6) {
   animation-delay: 435ms;
 }
 
-.radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *:nth-child(n + 7) {
+.radar-content-shell.is-entering .radar-filter-strip .radar-chip-row > *:nth-child(n + 7) {
   animation-delay: 470ms;
 }
 
@@ -789,7 +849,7 @@ input {
   padding-top: 12px;
 }
 
-.radar-content-shell.is-ready .radar-primary-filters {
+.radar-content-shell.is-entering .radar-primary-filters {
   animation: radar-page-group-enter 430ms var(--motion-ease-emphasized) 120ms both;
 }
 
@@ -813,7 +873,7 @@ input {
   margin-top: 24px;
 }
 
-.radar-content-shell.is-ready .radar-main-panel {
+.radar-content-shell.is-entering .radar-main-panel {
   animation: radar-page-group-enter 440ms var(--motion-ease-emphasized) 210ms both;
 }
 
@@ -821,6 +881,66 @@ input {
   display: flex;
   justify-content: flex-start;
   margin-bottom: 10px;
+}
+
+.radar-results-pane {
+  display: grid;
+  gap: 12px;
+  overflow: visible;
+  view-transition-name: radar-results;
+}
+
+.radar-cards-transition-target {
+  overflow: visible;
+}
+
+::view-transition-group(radar-results) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--motion-ease-emphasized);
+  overflow: visible;
+}
+
+:root[data-radar-source-transition]::view-transition-group(root),
+:root[data-radar-source-transition]::view-transition-old(root),
+:root[data-radar-source-transition]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-image-pair(radar-results) {
+  overflow: visible;
+}
+
+::view-transition-old(radar-results),
+::view-transition-new(radar-results) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--motion-ease-emphasized);
+  mix-blend-mode: normal;
+  overflow: visible;
+}
+
+:root[data-radar-source-transition="forward"]::view-transition-old(radar-results) {
+  animation-name: radar-results-exit-left;
+}
+
+:root[data-radar-source-transition="forward"]::view-transition-new(radar-results) {
+  animation-name: radar-results-enter-from-right;
+}
+
+:root[data-radar-source-transition="backward"]::view-transition-old(radar-results) {
+  animation-name: radar-results-exit-right;
+}
+
+:root[data-radar-source-transition="backward"]::view-transition-new(radar-results) {
+  animation-name: radar-results-enter-from-left;
+}
+
+:root[data-radar-source-transition="forward-fallback"] .radar-results-pane {
+  animation: radar-results-enter-from-right 320ms var(--motion-ease-emphasized) both;
+}
+
+:root[data-radar-source-transition="backward-fallback"] .radar-results-pane {
+  animation: radar-results-enter-from-left 320ms var(--motion-ease-emphasized) both;
 }
 
 .radar-settings-tabs {
@@ -895,35 +1015,43 @@ input {
   gap: 18px;
 }
 
-.radar-content-shell.is-ready .radar-list-section {
+.radar-content-shell.is-entering .radar-list-section,
+.radar-content-shell.is-tab-switching .radar-list-section {
   animation: radar-page-group-enter 440ms var(--motion-ease-emphasized) 330ms both;
 }
 
-.radar-content-shell.is-ready .radar-job-list > .radar-job-card {
+.radar-content-shell.is-entering .radar-job-list > .radar-job-card,
+.radar-content-shell.is-tab-switching .radar-job-list > .radar-job-card {
   animation: radar-page-card-enter 460ms var(--motion-ease-emphasized) both;
 }
 
-.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(1) {
+.radar-content-shell.is-entering .radar-job-list > .radar-job-card:nth-child(1),
+.radar-content-shell.is-tab-switching .radar-job-list > .radar-job-card:nth-child(1) {
   animation-delay: 390ms;
 }
 
-.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(2) {
+.radar-content-shell.is-entering .radar-job-list > .radar-job-card:nth-child(2),
+.radar-content-shell.is-tab-switching .radar-job-list > .radar-job-card:nth-child(2) {
   animation-delay: 445ms;
 }
 
-.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(3) {
+.radar-content-shell.is-entering .radar-job-list > .radar-job-card:nth-child(3),
+.radar-content-shell.is-tab-switching .radar-job-list > .radar-job-card:nth-child(3) {
   animation-delay: 500ms;
 }
 
-.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(4) {
+.radar-content-shell.is-entering .radar-job-list > .radar-job-card:nth-child(4),
+.radar-content-shell.is-tab-switching .radar-job-list > .radar-job-card:nth-child(4) {
   animation-delay: 555ms;
 }
 
-.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(5) {
+.radar-content-shell.is-entering .radar-job-list > .radar-job-card:nth-child(5),
+.radar-content-shell.is-tab-switching .radar-job-list > .radar-job-card:nth-child(5) {
   animation-delay: 610ms;
 }
 
-.radar-content-shell.is-ready .radar-job-list > .radar-job-card:nth-child(n + 6) {
+.radar-content-shell.is-entering .radar-job-list > .radar-job-card:nth-child(n + 6),
+.radar-content-shell.is-tab-switching .radar-job-list > .radar-job-card:nth-child(n + 6) {
   animation-delay: 665ms;
 }
 
@@ -2054,11 +2182,14 @@ input {
   .radar-navigation-band,
   .radar-toolbar__brand,
   .radar-toolbar__actions,
-  .radar-content-shell.is-ready .radar-primary-filters,
-  .radar-content-shell.is-ready .radar-main-panel,
-  .radar-content-shell.is-ready .radar-filter-strip .radar-chip-row > *,
-  .radar-content-shell.is-ready .radar-list-section,
-  .radar-content-shell.is-ready .radar-job-list > .radar-job-card,
+  .radar-content-shell.is-entering .radar-primary-filters,
+  .radar-content-shell.is-entering .radar-main-panel,
+  .radar-content-shell.is-entering .radar-filter-strip .radar-chip-row > *,
+  .radar-content-shell.is-entering .radar-list-section,
+  .radar-content-shell.is-entering .radar-job-list > .radar-job-card,
+  .radar-content-shell.is-tab-switching .radar-list-section,
+  .radar-content-shell.is-tab-switching .radar-job-list > .radar-job-card,
+  .radar-results-pane,
   .radar-text-reveal__word,
   .radar-modal-backdrop,
   .radar-modal,

@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { JobsColumn } from "@/components/url-radar/jobs-column";
 import { SecondaryPanel } from "@/components/url-radar/secondary-panel";
 import { MainTabSwitch, SectionTabs } from "@/components/url-radar/section-tabs";
@@ -8,6 +9,7 @@ import { SourceFilterBar } from "@/components/url-radar/source-filter-bar";
 import type {
   JobCluster,
   MainTab,
+  SourceFilterOption,
   UrlRadarConfig,
   UrlRadarJobsResponse,
   UrlRadarRefreshResponse,
@@ -18,8 +20,16 @@ import { buildSourceOptions, clusterJobs, sourceMatchesFilter } from "@/componen
 import { cloneUrlRadarFilters, URL_RADAR_DEFAULT_FILTERS } from "@/lib/url-radar-filters";
 
 const JOBS_ENDPOINT = "/api/url-radar/jobs?page=1&pageSize=500&includeExcluded=1";
+const PAGE_ENTRANCE_DURATION_MS = 1240;
+const SOURCE_TRANSITION_DURATION_MS = 340;
+const TAB_ENTRANCE_DURATION_MS = 1240;
 
 type ThemeMode = "light" | "dark";
+type EntranceState = "preparing" | "entering" | "settled";
+type SourceTransitionDirection = "forward" | "backward";
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (updateCallback: () => void) => { finished: Promise<void> };
+};
 
 const EMPTY_CONFIG: UrlRadarConfig = {
   enabled: true,
@@ -58,6 +68,18 @@ function normalizeConfig(config: UrlRadarConfig): UrlRadarConfig {
   };
 }
 
+function getSourceFilterIndex(options: SourceFilterOption[], filter: string | null): number {
+  if (!filter) return 0;
+  const optionIndex = options.findIndex((option) => option.key === filter);
+  return optionIndex >= 0 ? optionIndex + 1 : 0;
+}
+
+function getSourceTransitionDirection(options: SourceFilterOption[], previousFilter: string | null, nextFilter: string | null): SourceTransitionDirection {
+  const previousIndex = getSourceFilterIndex(options, previousFilter);
+  const nextIndex = getSourceFilterIndex(options, nextFilter);
+  return nextIndex >= previousIndex ? "forward" : "backward";
+}
+
 export default function UrlRadarTab() {
   const [config, setConfig] = useState<UrlRadarConfig>(EMPTY_CONFIG);
   const [jobsData, setJobsData] = useState<UrlRadarJobsResponse>(EMPTY_JOBS);
@@ -66,12 +88,15 @@ export default function UrlRadarTab() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [entranceState, setEntranceState] = useState<EntranceState>("preparing");
+  const [tabEntranceActive, setTabEntranceActive] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>("visible");
   const [visibleSourceFilter, setVisibleSourceFilter] = useState<string | null>(null);
   const [excludedSourceFilter, setExcludedSourceFilter] = useState<string | null>(null);
   const [utilitySection, setUtilitySection] = useState<UtilitySection | null>(null);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const lastNotifiedRunId = useRef<string | null>(null);
+  const tabEntranceTimeoutRef = useRef<number | null>(null);
 
   const visibleItems = useMemo(() => jobsData.items.filter((job) => !job.excludedReason), [jobsData.items]);
   const excludedItems = useMemo(() => jobsData.items.filter((job) => Boolean(job.excludedReason)), [jobsData.items]);
@@ -265,6 +290,85 @@ export default function UrlRadarTab() {
     setUtilitySection((prev) => (prev === section ? null : section));
   }, []);
 
+  const updateMainTab = useCallback(
+    (nextTab: MainTab) => {
+      if (nextTab === mainTab) return;
+
+      setMainTab(nextTab);
+
+      if (!hasLoadedOnce) return;
+      if (tabEntranceTimeoutRef.current !== null) {
+        window.clearTimeout(tabEntranceTimeoutRef.current);
+      }
+
+      setTabEntranceActive(true);
+      tabEntranceTimeoutRef.current = window.setTimeout(() => {
+        setTabEntranceActive(false);
+        tabEntranceTimeoutRef.current = null;
+      }, TAB_ENTRANCE_DURATION_MS);
+    },
+    [hasLoadedOnce, mainTab]
+  );
+
+  const runSourceFilterTransition = useCallback(
+    (direction: SourceTransitionDirection, applyFilterChange: () => void) => {
+      if (typeof document === "undefined" || !hasLoadedOnce) {
+        applyFilterChange();
+        return;
+      }
+
+      const root = document.documentElement;
+      const clearTransitionDirection = (expectedValue: string) => {
+        if (root.dataset.radarSourceTransition === expectedValue) {
+          delete root.dataset.radarSourceTransition;
+        }
+      };
+      const viewTransitionDocument = document as ViewTransitionDocument;
+
+      if (viewTransitionDocument.startViewTransition) {
+        const transitionValue = direction;
+        root.dataset.radarSourceTransition = transitionValue;
+
+        try {
+          const transition = viewTransitionDocument.startViewTransition(() => {
+            flushSync(applyFilterChange);
+          });
+          transition.finished.then(
+            () => clearTransitionDirection(transitionValue),
+            () => clearTransitionDirection(transitionValue)
+          );
+          return;
+        } catch {
+          clearTransitionDirection(transitionValue);
+        }
+      }
+
+      const fallbackTransitionValue = `${direction}-fallback`;
+      root.dataset.radarSourceTransition = fallbackTransitionValue;
+      applyFilterChange();
+      window.setTimeout(() => clearTransitionDirection(fallbackTransitionValue), SOURCE_TRANSITION_DURATION_MS);
+    },
+    [hasLoadedOnce]
+  );
+
+  const updateVisibleSourceFilter = useCallback(
+    (nextFilter: string | null) => {
+      if (nextFilter === visibleSourceFilter) return;
+      const direction = getSourceTransitionDirection(visibleSourceOptions, visibleSourceFilter, nextFilter);
+      runSourceFilterTransition(direction, () => setVisibleSourceFilter(nextFilter));
+    },
+    [runSourceFilterTransition, visibleSourceFilter, visibleSourceOptions]
+  );
+
+  const updateExcludedSourceFilter = useCallback(
+    (nextFilter: string | null) => {
+      if (nextFilter === excludedSourceFilter) return;
+      const direction = getSourceTransitionDirection(excludedSourceOptions, excludedSourceFilter, nextFilter);
+      runSourceFilterTransition(direction, () => setExcludedSourceFilter(nextFilter));
+    },
+    [excludedSourceFilter, excludedSourceOptions, runSourceFilterTransition]
+  );
+
   useEffect(() => {
     loadAll();
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
@@ -279,6 +383,23 @@ export default function UrlRadarTab() {
       window.clearInterval(hourlyRefresh);
     };
   }, [loadAll, refreshNow]);
+
+  useEffect(() => {
+    if (!hasLoadedOnce) return undefined;
+
+    setEntranceState("entering");
+    const timeout = window.setTimeout(() => setEntranceState("settled"), PAGE_ENTRANCE_DURATION_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [hasLoadedOnce]);
+
+  useEffect(() => {
+    return () => {
+      if (tabEntranceTimeoutRef.current !== null) {
+        window.clearTimeout(tabEntranceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (visibleSourceFilter && !visibleSourceOptions.some((option) => option.key === visibleSourceFilter)) {
@@ -341,30 +462,33 @@ export default function UrlRadarTab() {
         onSaveConfig={saveConfig}
       />
 
-      <div className={`radar-content-shell${hasLoadedOnce ? " is-ready" : " is-preparing"}`}>
+      <div className={["radar-content-shell", hasLoadedOnce ? "is-ready" : "is-preparing", entranceState === "entering" ? "is-entering" : "", entranceState === "settled" ? "has-entered" : "", tabEntranceActive ? "is-tab-switching" : ""].filter(Boolean).join(" ")}>
         <div className="radar-primary-filters">
-          <MainTabSwitch currentTab={mainTab} onChange={setMainTab} />
+          <MainTabSwitch currentTab={mainTab} onChange={updateMainTab} />
         </div>
 
         <div key={mainTab} className="radar-main-panel">
           <SourceFilterBar
             options={mainTab === "visible" ? visibleSourceOptions : excludedSourceOptions}
             activeFilter={mainTab === "visible" ? visibleSourceFilter : excludedSourceFilter}
-            onChange={mainTab === "visible" ? setVisibleSourceFilter : setExcludedSourceFilter}
+            onChange={mainTab === "visible" ? updateVisibleSourceFilter : updateExcludedSourceFilter}
             totalCount={mainTab === "visible" ? visibleClusters.length : excludedClusters.length}
           />
 
-          {error ? <div className="radar-inline-error radar-error-banner">Erreur: {error}</div> : null}
+          <div className="radar-results-pane">
+            {error ? <div className="radar-inline-error radar-error-banner">Erreur: {error}</div> : null}
 
-          <JobsColumn
-            currentTab={mainTab}
-            newClusters={newClusters}
-            olderClusters={olderClusters}
-            excludedClusters={filteredExcludedClusters}
-            lastRefreshAt={jobsData.lastRefreshAt}
-            onOpenCluster={markClusterOpened}
-            onToggleSaved={toggleSaved}
-          />
+            <JobsColumn
+              currentTab={mainTab}
+              newClusters={newClusters}
+              olderClusters={olderClusters}
+              excludedClusters={filteredExcludedClusters}
+              lastRefreshAt={jobsData.lastRefreshAt}
+              motionKey={`${mainTab}-${mainTab === "visible" ? (visibleSourceFilter ?? "all") : (excludedSourceFilter ?? "all")}`}
+              onOpenCluster={markClusterOpened}
+              onToggleSaved={toggleSaved}
+            />
+          </div>
         </div>
       </div>
     </div>
