@@ -15,15 +15,21 @@ type JobsColumnProps = {
   onToggleSaved: (cluster: JobCluster) => void;
 };
 
-function RefreshMeta({ stamp }: { stamp?: string | null }) {
+function RefreshMeta({ delayMs = 0, stamp }: { delayMs?: number; stamp?: string | null }) {
   if (!stamp) return null;
 
   return (
-    <span className="radar-refresh-meta">
+    <span className={["radar-refresh-meta", delayMs > 0 ? "is-delayed" : ""].filter(Boolean).join(" ")} style={{ "--refresh-delay": `${delayMs}ms` } as CSSProperties}>
       <span className="radar-refresh-meta__separator" aria-hidden="true" />
       <span className="radar-refresh-meta__text">Actualisé {stamp}</span>
     </span>
   );
+}
+
+function getAnimatedWordsDurationMs(text: string): number {
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  if (wordCount === 0) return 0;
+  return 360 + (wordCount - 1) * 60 + 700;
 }
 
 function AnimatedWords({ text }: { text: string }) {
@@ -93,6 +99,8 @@ function SectionBlock({
   stamp?: string | null;
   transitionCards?: boolean;
 }) {
+  const refreshDelayMs = heading ? getAnimatedWordsDurationMs(heading) : 0;
+
   return (
     <section className="radar-list-section">
       {heading || stamp ? (
@@ -102,7 +110,7 @@ function SectionBlock({
               <AnimatedWords key={`${motionKey}-${heading}`} text={heading} />
             </h2>
           ) : null}
-          <RefreshMeta stamp={stamp} />
+          <RefreshMeta delayMs={refreshDelayMs} stamp={stamp} />
         </div>
       ) : null}
       <div className={["radar-job-list", transitionCards ? "radar-cards-transition-target" : ""].filter(Boolean).join(" ")}>{children}</div>
