@@ -251,12 +251,15 @@ input {
 }
 
 .radar-tab-row {
+  --tab-row-padding: 4px;
+  --tab-row-radius: calc(var(--radius-pill) + var(--tab-row-padding));
+  --tab-row-selected-radius: calc(var(--tab-row-radius) - var(--tab-row-padding));
   position: relative;
   width: fit-content;
   max-width: 100%;
-  padding: 4px;
+  padding: var(--tab-row-padding);
   border: 1px solid var(--border);
-  border-radius: calc(var(--radius-pill) + 4px);
+  border-radius: var(--tab-row-radius);
   background: linear-gradient(180deg, color-mix(in srgb, var(--surface-soft) 86%, white 14%) 0%, color-mix(in srgb, var(--surface-soft) 96%, white 4%) 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -273,11 +276,11 @@ input {
 
 .radar-tab-row__indicator {
   position: absolute;
-  top: 4px;
-  bottom: 4px;
+  top: var(--tab-row-padding);
+  bottom: var(--tab-row-padding);
   left: 0;
   border: 1px solid rgba(74, 64, 57, 0.08);
-  border-radius: 18px;
+  border-radius: var(--tab-row-selected-radius);
   background: var(--surface);
   box-shadow:
     0 12px 24px rgba(78, 64, 52, 0.1),
