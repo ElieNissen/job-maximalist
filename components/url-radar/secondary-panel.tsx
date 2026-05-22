@@ -599,7 +599,7 @@ function FiltersPanel({
 
       <div className="radar-token-groups-grid">
         <EditableTokenList
-          label="Mots inclus"
+          label="Mots recherchés"
           addLabel="Ajouter un mot recherché"
           placeholder="Mot recherché"
           items={filters.keywordsInclude}
@@ -616,7 +616,7 @@ function FiltersPanel({
 
         <EditableTokenList
           label="Localisations"
-          addLabel="Ajouter une zone"
+          addLabel="Ajouter une localisation"
           placeholder="Zone"
           items={filters.locations}
           onChange={(locations) => setDraftConfig((prev) => ({ ...prev, filters: { ...prev.filters, locations } }))}
