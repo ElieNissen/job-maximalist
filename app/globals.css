@@ -733,26 +733,47 @@ input {
 }
 
 @keyframes radar-token-field-open {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(-4px) scale(0.985);
+    filter: blur(4px);
+    transform: translateY(-7px) scaleX(0.72) scaleY(0.94);
   }
 
-  to {
+  68% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(1px) scaleX(1.018) scaleY(1.004);
+  }
+
+  100% {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
 
 @keyframes radar-token-field-close {
-  from {
+  0% {
     opacity: 1;
+    filter: blur(0);
     transform: translateY(0) scale(1);
   }
 
-  to {
+  100% {
     opacity: 0;
-    transform: translateY(-3px) scale(0.985);
+    filter: blur(3px);
+    transform: translateY(-5px) scaleX(0.86) scaleY(0.96);
+  }
+}
+
+@keyframes radar-token-field-content-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -2140,14 +2161,16 @@ input {
   width: min(100%, calc(var(--token-input-width, 24ch) + 58px));
   min-width: min(100%, 248px);
   max-width: 620px;
-  overflow: hidden;
+  overflow: visible;
+  transform-origin: left center;
+  will-change: opacity, filter, transform;
   transition: width var(--motion-standard) var(--motion-ease-emphasized);
-  animation: radar-token-field-open 220ms var(--motion-ease-emphasized) both;
+  animation: radar-token-field-open 360ms var(--motion-ease-emphasized) both;
 }
 
 .radar-token-add.is-closing {
   pointer-events: none;
-  animation: radar-token-field-close 180ms var(--motion-ease-standard) both;
+  animation: radar-token-field-close 210ms var(--motion-ease-standard) both;
 }
 
 .radar-token-add__field {
@@ -2171,6 +2194,10 @@ input {
   outline: none;
 }
 
+.radar-token-add.is-open .radar-token-add__field input {
+  animation: radar-token-field-content-in 260ms var(--motion-ease-emphasized) 70ms both;
+}
+
 .radar-token-add__save {
   justify-content: center;
   width: 38px;
@@ -2180,6 +2207,10 @@ input {
   border-radius: 11px;
   color: var(--muted-strong);
   font-weight: 700;
+}
+
+.radar-token-add.is-open .radar-token-add__save {
+  animation: radar-token-field-content-in 260ms var(--motion-ease-emphasized) 110ms both;
 }
 
 .radar-token-add__save:hover {
@@ -2332,6 +2363,8 @@ input {
   .radar-url-row.is-new,
   .radar-url-add-actions.is-shifting,
   .radar-token-add,
+  .radar-token-add.is-open .radar-token-add__field input,
+  .radar-token-add.is-open .radar-token-add__save,
   .radar-bookmark-button.is-active .radar-bookmark-icon {
     animation: none;
   }
