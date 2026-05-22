@@ -21,7 +21,7 @@ Dans l'interface, on retrouve notamment :
 - un panneau `Réglages` avec trois zones :
   - `URLs` : gestion des URLs suivies
   - `Diagnostic` : diagnostics par URL/source suivie
-  - `Filtres avancés` : mots-clés inclus/exclus, localisation, contrats, ancienneté
+  - `Filtres avancés` : mots recherchés, mots exclus, localisation et contrats
 - un suivi local des statuts `vu` / `sauvegardé`
 - des notifications navigateur locales quand de nouvelles offres correspondant aux filtres sont détectées
 
@@ -68,7 +68,12 @@ Ce script :
 
 ### Manuel / hors Windows
 
-Si tu préfères lancer l'application à la main :
+Prérequis :
+
+- Node.js 20 ou plus récent
+- npm
+
+Commandes :
 
 ```bash
 npm install
@@ -86,11 +91,42 @@ Sur Windows, la copie peut aussi se faire avec :
 copy .env.example .env
 ```
 
+## Configuration
+
+Le fichier `.env.example` contient la configuration minimale pour lancer l'application localement.
+
+Les variables Cloudflare sont optionnelles. Elles servent uniquement à tester des fallbacks de rendu distant pour certaines sources et ne sont pas nécessaires au fonctionnement standard.
+
+## Données locales
+
+L'application fonctionne avec une logique local-first.
+
+En mode développement source :
+
+- la configuration radar est stockée dans `data/url-radar-config.json`
+- l'état radar est stocké dans `data/url-radar-state.json`
+- la base SQLite est stockée dans `prisma/dev.db`
+
+En mode application packagée :
+
+- Windows : `%LocalAppData%/JobMAXIMALIST`
+- macOS : `~/Library/Application Support/JobMAXIMALIST`
+- Linux : `~/.local/share/JobMAXIMALIST` ou `$XDG_DATA_HOME/JobMAXIMALIST`
+
+Les données locales couvrent notamment :
+
+- les URLs suivies
+- les filtres
+- l'historique des URLs retirées récemment
+- les statuts d'offre (`viewed`, `saved`)
+- les offres détectées et les runs de refresh
+- les navigateurs Playwright installés pour le scraping
+
+Ces fichiers ne doivent pas être commités, car ils peuvent contenir des recherches, des favoris ou des données personnelles.
+
 ## Distribution
 
 Le projet peut être distribué comme une application locale prête à lancer, sans demander à l'utilisateur final d'installer Node, npm ou Prisma à la main.
-
-La base SQLite seed vide est reconstruite pendant le packaging à partir du schéma déjà présent dans `prisma/dev.db`.
 
 ### Construire le package Windows
 
@@ -166,31 +202,7 @@ Au premier lancement, l'application :
 
 Une connexion Internet est donc nécessaire lors du tout premier lancement d'un package distribué.
 
-## Configuration et persistance locale
-
-L'application fonctionne avec une logique local-first.
-
-En mode développement source :
-
-- la configuration radar est stockée dans `data/url-radar-config.json`
-- l'état radar est stocké dans `data/url-radar-state.json`
-- la base SQLite est stockée dans `prisma/dev.db`
-
-En mode application packagée :
-
-- Windows : `%LocalAppData%/JobMAXIMALIST`
-- macOS : `~/Library/Application Support/JobMAXIMALIST`
-
-Les données locales couvrent notamment :
-
-- les URLs suivies
-- les filtres
-- l'historique des URLs retirées récemment
-- les statuts d'offre (`viewed`, `saved`)
-- les offres détectées et les runs de refresh
-- les navigateurs Playwright installés pour le scraping
-
-## API
+## API locale
 
 Le front de l'application consomme les routes suivantes :
 
@@ -204,9 +216,24 @@ Le front de l'application consomme les routes suivantes :
 - `GET /api/url-radar/status`
 - `GET /api/url-radar/cloudflare-test`
 
-## Notes
+Ces routes sont pensées pour l'application locale, pas pour une exposition publique sur Internet.
 
-- le projet est pensé pour un usage local d'abord, pas pour une architecture multi-utilisateur
-- certaines sources peuvent être limitées par l'anti-bot, Cloudflare, la session ou l'adresse IP
-- selon les plateformes, la qualité d'extraction peut varier si le HTML ou le rendu JavaScript change
-- les diagnostics aident à comprendre les échecs, mais ne garantissent pas qu'une source restera exploitable dans le temps
+## Scraping et limites
+
+- Le projet est pensé pour un usage local d'abord, pas pour une architecture multi-utilisateur.
+- Les sources peuvent être limitées par l'anti-bot, Cloudflare, la session, la géolocalisation ou l'adresse IP.
+- La qualité d'extraction peut varier si le HTML ou le rendu JavaScript d'une plateforme change.
+- Les diagnostics aident à comprendre les échecs, mais ne garantissent pas qu'une source restera exploitable dans le temps.
+- Les URLs suivies sont configurées par l'utilisateur. Le dépôt ne contient pas d'URLs de recherche personnelles par défaut.
+
+## Contribuer
+
+Les contributions sont bienvenues. Voir [CONTRIBUTING.md](CONTRIBUTING.md) pour les étapes de setup et les règles à respecter avant une pull request.
+
+## Sécurité
+
+Voir [SECURITY.md](SECURITY.md) pour les points sensibles liés aux données locales, aux fichiers `.env` et à l'exposition du serveur local.
+
+## Licence
+
+JobMAXIMALIST est distribué sous licence MIT. Voir [LICENSE](LICENSE).

@@ -16,10 +16,6 @@ enum Source {
   hiring_cafe
   licorne_society
   career_sites
-  greenhouse
-  lever
-  smartrecruiters
-  politepol
 }
 
 enum ContractType {
@@ -58,17 +54,6 @@ model Job {
 model RefreshRun {
   id        String        @id @default(cuid())
   source    Source?
-  status    RefreshStatus
-  startedAt DateTime
-  endedAt   DateTime?
-  newCount  Int           @default(0)
-  error     String?
-}
-
-model AtsRun {
-  id        String        @id @default(cuid())
-  source    Source
-  target    String
   status    RefreshStatus
   startedAt DateTime
   endedAt   DateTime?

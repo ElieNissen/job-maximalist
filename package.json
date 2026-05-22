@@ -1,7 +1,11 @@
 {
-  "name": "outils-recherche-emploi",
+  "name": "job-maximalist",
   "version": "0.1.0",
-  "private": true,
+  "description": "Local-first dashboard for tracking, filtering, diagnosing and saving multi-source job offers.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "dev:fast": "next dev --turbopack",

@@ -3,6 +3,11 @@ node_modules/
 coverage/
 dist/
 *.log
+*.tsbuildinfo
+.env.local
+.env*.local
+playwright-report/
+test-results/
 .env
 prisma/dev.db
 prisma/dev.db-journal

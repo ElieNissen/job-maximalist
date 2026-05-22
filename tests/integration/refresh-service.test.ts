@@ -1,46 +1,38 @@
-import { describe, expect, it, vi } from "vitest";
+import { mkdtemp, rm } from "fs/promises";
+import os from "os";
+import path from "path";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cloneUrlRadarFilters, URL_RADAR_DEFAULT_FILTERS } from "@/lib/url-radar-filters";
+import type { UrlRadarConfig } from "@/lib/url-radar-config";
 
-vi.mock("@/lib/connectors", () => ({
-  fetchJobsFromSource: vi.fn().mockResolvedValue({
-    jobs: [
-      {
-        source: "linkedin",
-        sourceJobId: "123",
-        title: "UX Designer",
-        company: "Acme",
-        location: "Paris",
-        contractType: "CDI",
-        url: "https://example.com",
-        postedAt: new Date()
-      }
-    ],
-    errors: []
-  })
-}));
+const previousAppDataDir = process.env.JOBMAX_APP_DATA_DIR;
 
-vi.mock("@/lib/jobs-service", () => ({
-  upsertJob: vi.fn().mockResolvedValue({
-    created: true,
-    job: { excludedReason: null }
-  })
-}));
-
-vi.mock("@/lib/prisma", () => {
-  const mock = {
-    refreshRun: {
-      create: vi.fn().mockResolvedValue({ id: "run-1" }),
-      update: vi.fn().mockResolvedValue({})
-    }
-  };
-  return { prisma: mock };
+afterEach(() => {
+  process.env.JOBMAX_APP_DATA_DIR = previousAppDataDir;
 });
 
-import { refreshJobs } from "@/lib/refresh-service";
+describe("refreshUrlRadar", () => {
+  it("records an empty local refresh without network calls when no URLs are configured", async () => {
+    const tempDirectory = await mkdtemp(path.join(os.tmpdir(), "jobmaximalist-refresh-"));
+    process.env.JOBMAX_APP_DATA_DIR = tempDirectory;
+    vi.resetModules();
 
-describe("refreshJobs", () => {
-  it("creates refresh runs and reports new items", async () => {
-    const result = await refreshJobs({ sources: ["linkedin"] });
-    expect(result.totalNew).toBe(1);
-    expect(result.summary.linkedin.newCount).toBe(1);
+    try {
+      const { refreshUrlRadar } = await import("@/lib/url-radar-service");
+      const config: UrlRadarConfig = {
+        enabled: true,
+        intervalMinutes: 60,
+        urls: [],
+        filters: cloneUrlRadarFilters(URL_RADAR_DEFAULT_FILTERS),
+        removedUrlsHistory: []
+      };
+
+      const result = await refreshUrlRadar(config);
+
+      expect(result.totalNew).toBe(0);
+      expect(result.summary).toEqual({});
+    } finally {
+      await rm(tempDirectory, { recursive: true, force: true });
+    }
   });
 });

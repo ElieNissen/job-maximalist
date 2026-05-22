@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { matchesFilters } from "@/lib/filtering";
-import { DEFAULT_FILTERS } from "@/lib/config/defaults";
+import { URL_RADAR_DEFAULT_FILTERS } from "@/lib/url-radar-filters";
 
 describe("matchesFilters", () => {
   it("matches include keywords and contract/location", () => {
@@ -15,7 +15,7 @@ describe("matchesFilters", () => {
         url: "https://example.com",
         postedAt: new Date()
       },
-      DEFAULT_FILTERS
+      URL_RADAR_DEFAULT_FILTERS
     );
 
     expect(result.match).toBe(true);
@@ -34,7 +34,7 @@ describe("matchesFilters", () => {
         url: "https://example.com",
         postedAt: new Date()
       },
-      DEFAULT_FILTERS
+      URL_RADAR_DEFAULT_FILTERS
     );
 
     expect(result.match).toBe(false);

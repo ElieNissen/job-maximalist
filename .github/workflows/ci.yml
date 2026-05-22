@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare environment
+        run: cp .env.example .env
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+
+      - name: Create local SQLite schema
+        run: npm run prisma:push
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
