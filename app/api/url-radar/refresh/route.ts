@@ -10,10 +10,6 @@ async function runRefresh() {
 
   try {
     const config = await getUrlRadarConfig();
-    if (!config.enabled) {
-      return NextResponse.json({ ok: true, totalNew: 0, summary: {}, skipped: "URL Radar disabled" });
-    }
-
     const result = await refreshUrlRadar(config);
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {

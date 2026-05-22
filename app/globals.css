@@ -1428,6 +1428,33 @@ input {
   gap: 8px;
 }
 
+.radar-form-grid--urls {
+  gap: 18px;
+  padding: 4px 10px 16px;
+}
+
+.radar-refresh-settings {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.radar-refresh-settings .radar-filter-preferences__header {
+  min-height: 0;
+}
+
+.radar-refresh-options {
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: visible;
+  scrollbar-width: none;
+}
+
+.radar-refresh-options::-webkit-scrollbar {
+  display: none;
+}
+
 .radar-checkbox-row {
   position: relative;
   display: grid;
@@ -1466,6 +1493,11 @@ input {
 
 .radar-checkbox-row--compact .radar-checkbox-row__label {
   font-size: 0.88rem;
+}
+
+.radar-radio-row.radar-checkbox-row--compact {
+  gap: 7px;
+  white-space: nowrap;
 }
 
 .radar-checkbox-row:hover {
@@ -1551,6 +1583,23 @@ input {
 .radar-checkbox-row.is-checked .radar-checkbox-row__control::after {
   opacity: 1;
   transform: translate(-50%, -58%) rotate(45deg) scale(1);
+}
+
+.radar-radio-row .radar-checkbox-row__control {
+  border-radius: var(--radius-pill);
+}
+
+.radar-radio-row .radar-checkbox-row__control::after {
+  width: 7px;
+  height: 7px;
+  border: 0;
+  border-radius: inherit;
+  background: var(--surface);
+  transform: translate(-50%, -50%) scale(0.55);
+}
+
+.radar-radio-row.is-checked .radar-checkbox-row__control::after {
+  transform: translate(-50%, -50%) scale(1);
 }
 
 :root[data-theme="dark"] .radar-checkbox-row {
@@ -1842,7 +1891,8 @@ input {
   gap: 4px;
 }
 
-.radar-form-grid--filters .radar-filter-group {
+.radar-form-grid--filters .radar-filter-group,
+.radar-form-grid--urls .radar-filter-group {
   padding: 18px;
   border: 1px solid rgba(74, 64, 57, 0.16);
   border-radius: 20px;
@@ -1851,7 +1901,13 @@ input {
   box-shadow: 0 1px 2px rgba(56, 46, 38, 0.025);
 }
 
-:root[data-theme="dark"] .radar-form-grid--filters .radar-filter-group {
+.radar-form-grid--urls .radar-refresh-settings {
+  padding-block: 0;
+  overflow: visible;
+}
+
+:root[data-theme="dark"] .radar-form-grid--filters .radar-filter-group,
+:root[data-theme="dark"] .radar-form-grid--urls .radar-filter-group {
   border-color: rgba(238, 225, 213, 0.1);
   background: var(--surface);
   box-shadow: none;
@@ -2238,6 +2294,8 @@ input {
   .radar-icon-toggle,
   .radar-settings-tab,
   .radar-job-card,
+  .radar-radio-row,
+  .radar-radio-row .radar-checkbox-row__control,
   .radar-checkbox-row,
   .radar-checkbox-row__control,
   .radar-token-add__save,
@@ -2258,6 +2316,7 @@ input {
   .radar-close-button:hover,
   .radar-bookmark-button:hover,
   .radar-job-card:hover,
+  .radar-radio-row:hover,
   .radar-icon-toggle:hover,
   .radar-settings-tab:hover,
   .radar-token-add__save:hover,

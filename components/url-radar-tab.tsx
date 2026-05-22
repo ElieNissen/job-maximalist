@@ -374,15 +374,26 @@ export default function UrlRadarTab() {
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
+  }, [loadAll]);
 
+  useEffect(() => {
     const refreshStatus = window.setInterval(loadAll, 5 * 60 * 1000);
-    const hourlyRefresh = window.setInterval(refreshNow, 60 * 60 * 1000);
 
     return () => {
       window.clearInterval(refreshStatus);
-      window.clearInterval(hourlyRefresh);
     };
-  }, [loadAll, refreshNow]);
+  }, [loadAll]);
+
+  useEffect(() => {
+    if (!config.enabled) return undefined;
+
+    const intervalMs = Math.max(30, config.intervalMinutes) * 60 * 1000;
+    const scheduledRefresh = window.setInterval(refreshNow, intervalMs);
+
+    return () => {
+      window.clearInterval(scheduledRefresh);
+    };
+  }, [config.enabled, config.intervalMinutes, refreshNow]);
 
   useEffect(() => {
     if (!hasLoadedOnce) return undefined;

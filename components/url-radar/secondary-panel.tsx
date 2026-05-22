@@ -54,6 +54,30 @@ const SETTINGS_TAB_OPTIONS: readonly SlidingTabOption<SettingsTab>[] = [
   { label: "Filtres avancés", value: "filters" }
 ];
 
+const REFRESH_INTERVAL_MINUTES = [30, 60, 120] as const;
+
+type RefreshIntervalMinutes = (typeof REFRESH_INTERVAL_MINUTES)[number];
+type RefreshIntervalChoice = `${RefreshIntervalMinutes}` | "none";
+
+const REFRESH_INTERVAL_OPTIONS: ReadonlyArray<{ value: RefreshIntervalChoice; label: string }> = [
+  { value: "30", label: "30 minutes" },
+  { value: "60", label: "1 heure" },
+  { value: "120", label: "2 heures" },
+  { value: "none", label: "Pas d'actualisation" }
+];
+
+function getClosestRefreshIntervalMinutes(intervalMinutes: number): RefreshIntervalMinutes {
+  const safeInterval = Number.isFinite(intervalMinutes) ? intervalMinutes : 60;
+  return REFRESH_INTERVAL_MINUTES.reduce((best, current) =>
+    Math.abs(current - safeInterval) < Math.abs(best - safeInterval) ? current : best
+  );
+}
+
+function getRefreshIntervalChoice(config: UrlRadarConfig): RefreshIntervalChoice {
+  if (!config.enabled) return "none";
+  return `${getClosestRefreshIntervalMinutes(config.intervalMinutes)}` as RefreshIntervalChoice;
+}
+
 function normalizeKey(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -362,6 +386,59 @@ function ToggleRow({
   );
 }
 
+function RefreshIntervalSelector({
+  draftConfig,
+  setDraftConfig
+}: {
+  draftConfig: UrlRadarConfig;
+  setDraftConfig: Dispatch<SetStateAction<UrlRadarConfig>>;
+}) {
+  const selectedValue = getRefreshIntervalChoice(draftConfig);
+
+  const updateRefreshInterval = (value: RefreshIntervalChoice) => {
+    setDraftConfig((prev) => {
+      if (value === "none") {
+        return { ...prev, enabled: false };
+      }
+
+      return {
+        ...prev,
+        enabled: true,
+        intervalMinutes: Number(value)
+      };
+    });
+  };
+
+  return (
+    <section className="radar-filter-group radar-refresh-settings" aria-labelledby="radar-refresh-settings-title">
+      <div className="radar-filter-preferences__header">
+        <strong id="radar-refresh-settings-title">Actualisation automatique</strong>
+      </div>
+
+      <div className="radar-filter-preferences__row radar-refresh-options" role="radiogroup" aria-labelledby="radar-refresh-settings-title">
+        {REFRESH_INTERVAL_OPTIONS.map((option) => {
+          const checked = selectedValue === option.value;
+
+          return (
+            <label key={option.value} className={`radar-checkbox-row radar-checkbox-row--compact radar-radio-row${checked ? " is-checked" : ""}`}>
+              <input
+                className="radar-checkbox-row__input"
+                type="radio"
+                name="url-radar-refresh-interval"
+                value={option.value}
+                checked={checked}
+                onChange={() => updateRefreshInterval(option.value)}
+              />
+              <span className="radar-checkbox-row__control" aria-hidden="true" />
+              <span className="radar-checkbox-row__label">{option.label}</span>
+            </label>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function toNormalizedJob(job: UrlRadarJob): NormalizedJob {
   return {
     source: job.source,
@@ -585,18 +662,8 @@ function UrlsSettingsPanel({ draftConfig, setDraftConfig }: { draftConfig: UrlRa
   };
 
   return (
-    <div className="radar-form-grid">
-      <ToggleRow label="Actualisation active" checked={draftConfig.enabled} onChange={(checked) => setDraftConfig((prev) => ({ ...prev, enabled: checked }))} />
-
-      <label className="radar-field">
-        <span>Intervalle (minutes)</span>
-        <input
-          type="number"
-          min={15}
-          value={draftConfig.intervalMinutes}
-          onChange={(event) => setDraftConfig((prev) => ({ ...prev, intervalMinutes: Number(event.target.value) || 60 }))}
-        />
-      </label>
+    <div className="radar-form-grid radar-form-grid--urls">
+      <RefreshIntervalSelector draftConfig={draftConfig} setDraftConfig={setDraftConfig} />
 
       <div className="radar-url-list">
         {draftConfig.urls.map((url, index) => (
