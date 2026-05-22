@@ -854,7 +854,8 @@ input {
 .radar-field span,
 .radar-checkbox-row__label,
 .radar-modal__subtitle,
-.radar-source-card__metrics,
+.radar-source-card__host,
+.radar-source-card__message,
 .radar-section-stamp {
   color: var(--muted);
   font-size: 0.88rem;
@@ -1042,7 +1043,8 @@ input {
 }
 
 .radar-list-section__header,
-.radar-source-card__summary {
+.radar-source-card__top,
+.radar-attempt-row__top {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -1745,19 +1747,32 @@ input {
 
 .radar-source-card {
   display: grid;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 14px;
+  padding: 16px;
   border: 1px solid rgba(74, 64, 57, 0.16);
-  border-radius: 16px;
+  border-radius: 20px;
   background: var(--surface);
   background-clip: padding-box;
   box-shadow: 0 1px 2px rgba(56, 46, 38, 0.025);
+}
+
+.radar-source-card--warning {
+  border-color: rgba(176, 102, 68, 0.22);
 }
 
 :root[data-theme="dark"] .radar-source-card {
   background: var(--surface);
   border-color: rgba(238, 225, 213, 0.1);
   box-shadow: none;
+}
+
+:root[data-theme="dark"] .radar-source-card--warning {
+  border-color: rgba(226, 159, 117, 0.2);
+}
+
+.radar-source-card__top {
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .radar-source-card__title {
@@ -1767,11 +1782,103 @@ input {
   line-height: 1.35;
 }
 
+.radar-source-card__host {
+  display: block;
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+.radar-source-card__message {
+  margin: 0;
+}
+
 .radar-source-card__metrics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-top: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.radar-source-card__metrics div,
+.radar-diagnostic-summary__metrics div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.radar-source-card__metrics dt,
+.radar-diagnostic-summary__metrics dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+
+.radar-source-card__metrics dd,
+.radar-diagnostic-summary__metrics dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.radar-diagnostic-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid rgba(74, 64, 57, 0.12);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-soft) 82%, white 18%);
+  color: var(--muted-strong);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.radar-diagnostic-status--ok {
+  border-color: rgba(64, 133, 91, 0.2);
+  background: rgba(60, 151, 94, 0.12);
+  color: #2f7048;
+}
+
+.radar-diagnostic-status--empty {
+  border-color: rgba(91, 67, 55, 0.12);
+  background: rgba(91, 67, 55, 0.08);
+  color: var(--muted-strong);
+}
+
+.radar-diagnostic-status--warning {
+  border-color: rgba(176, 102, 68, 0.2);
+  background: rgba(176, 102, 68, 0.1);
+  color: #8a4a2e;
+}
+
+.radar-diagnostic-status--idle {
+  border-color: rgba(74, 64, 57, 0.1);
+  background: transparent;
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .radar-diagnostic-status {
+  border-color: rgba(238, 225, 213, 0.1);
+  background: var(--surface-raised);
+  color: var(--muted-strong);
+}
+
+:root[data-theme="dark"] .radar-diagnostic-status--ok {
+  border-color: rgba(104, 168, 124, 0.24);
+  background: rgba(104, 168, 124, 0.12);
+  color: #b8e0c1;
+}
+
+:root[data-theme="dark"] .radar-diagnostic-status--warning {
+  border-color: rgba(226, 159, 117, 0.22);
+  background: rgba(226, 159, 117, 0.12);
+  color: #f0c3a8;
 }
 
 .radar-modal-backdrop {
@@ -2286,9 +2393,9 @@ input {
 }
 
 .radar-detail-dialog {
-  width: min(100%, 720px);
+  width: min(100%, 760px);
   display: grid;
-  gap: 18px;
+  gap: 16px;
   padding: 18px;
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -2299,17 +2406,105 @@ input {
   animation: radar-surface-enter var(--motion-standard) var(--motion-ease-emphasized) both;
 }
 
+.radar-diagnostic-summary,
+.radar-diagnostic-section,
+.radar-diagnostic-technical {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(74, 64, 57, 0.1);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-soft) 84%, white 16%);
+}
+
+:root[data-theme="dark"] .radar-diagnostic-summary,
+:root[data-theme="dark"] .radar-diagnostic-section,
+:root[data-theme="dark"] .radar-diagnostic-technical {
+  border-color: rgba(238, 225, 213, 0.08);
+  background: var(--surface-soft);
+}
+
+.radar-diagnostic-summary__main {
+  display: grid;
+  gap: 8px;
+}
+
+.radar-diagnostic-summary__main p,
+.radar-attempt-row p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.radar-diagnostic-summary__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.radar-diagnostic-section > strong {
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.radar-diagnostic-error-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted-strong);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.radar-diagnostic-technical summary {
+  width: fit-content;
+  color: var(--muted-strong);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.radar-diagnostic-technical summary::marker {
+  color: var(--muted);
+}
+
+.radar-attempt-list {
+  display: grid;
+  gap: 8px;
+}
+
 .radar-attempt-row {
   display: grid;
-  gap: 4px;
+  gap: 8px;
   padding: 10px 12px;
   border: 1px solid rgba(74, 64, 57, 0.08);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--surface-soft) 86%, white 14%);
+  background: var(--surface);
+}
+
+.radar-attempt-row__top {
+  justify-content: space-between;
+}
+
+.radar-attempt-row__top strong {
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.radar-attempt-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  color: var(--muted);
+  font-size: 0.84rem;
 }
 
 :root[data-theme="dark"] .radar-attempt-row {
-  background: color-mix(in srgb, var(--surface-soft) 88%, black 12%);
+  background: var(--surface);
   border-color: rgba(238, 225, 213, 0.08);
 }
 
@@ -2436,7 +2631,8 @@ input {
 
   .radar-toolbar,
   .radar-toolbar__actions,
-  .radar-source-card__summary,
+  .radar-source-card__top,
+  .radar-diagnostic-summary__metrics,
   .radar-list-section__header,
   .radar-job-card__topline,
   .radar-modal__header,

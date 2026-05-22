@@ -42,8 +42,21 @@ type SecondaryPanelProps = {
 type DiagnosticState = {
   label: string;
   host: string;
+  url: string;
   lastRunAt: string | null;
   runSummary?: UrlRadarStatusResponse["lastRunSummary"][string];
+};
+
+type DiagnosticTone = "ok" | "empty" | "warning" | "idle";
+
+type DiagnosticSummary = {
+  tone: DiagnosticTone;
+  label: string;
+  message: string;
+  found: number;
+  kept: number;
+  errors: number;
+  hasRun: boolean;
 };
 
 type SettingsTab = "urls" | "sources" | "filters";
@@ -140,6 +153,125 @@ function CloseButton({ onClick }: { onClick: () => void }) {
   );
 }
 
+function pluralizeCount(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count > 1 ? plural : singular}`;
+}
+
+function getDiagnosticSummary(url: string, runSummary: DiagnosticState["runSummary"]): DiagnosticSummary {
+  const hasUrl = Boolean(url.trim());
+  const found = runSummary?.parsed ?? 0;
+  const kept = runSummary?.visible ?? 0;
+  const errors = runSummary?.errors?.length ?? 0;
+
+  if (!hasUrl) {
+    return {
+      tone: "warning",
+      label: "URL à compléter",
+      message: "Ajoute une URL pour que le radar puisse vérifier cette source.",
+      found,
+      kept,
+      errors,
+      hasRun: false
+    };
+  }
+
+  if (!runSummary) {
+    return {
+      tone: "idle",
+      label: "Pas encore vérifiée",
+      message: "Cette source sera analysée au prochain rafraîchissement.",
+      found,
+      kept,
+      errors,
+      hasRun: false
+    };
+  }
+
+  if (errors > 0 && found === 0) {
+    return {
+      tone: "warning",
+      label: "À vérifier",
+      message: "Le radar n'a pas réussi à lire cette source correctement.",
+      found,
+      kept,
+      errors,
+      hasRun: true
+    };
+  }
+
+  if (kept > 0) {
+    return {
+      tone: "ok",
+      label: "Fonctionne",
+      message: `${pluralizeCount(kept, "offre gardée", "offres gardées")} après filtrage.`,
+      found,
+      kept,
+      errors,
+      hasRun: true
+    };
+  }
+
+  if (found > 0) {
+    return {
+      tone: "empty",
+      label: "Tout est filtré",
+      message: "Des offres ont été trouvées, mais aucune ne passe les filtres actuels.",
+      found,
+      kept,
+      errors,
+      hasRun: true
+    };
+  }
+
+  return {
+    tone: "empty",
+    label: "Rien trouvé",
+    message: "La source a répondu, mais aucune offre exploitable n'a été détectée.",
+    found,
+    kept,
+    errors,
+    hasRun: true
+  };
+}
+
+function getAttemptStatusLabel(status: string): string {
+  switch (status) {
+    case "success":
+      return "A réussi";
+    case "empty":
+      return "Rien trouvé";
+    case "error":
+      return "Erreur";
+    case "skipped":
+      return "Ignoré";
+    default:
+      return status;
+  }
+}
+
+function getAttemptTone(status: string): DiagnosticTone {
+  switch (status) {
+    case "success":
+      return "ok";
+    case "empty":
+      return "empty";
+    case "error":
+      return "warning";
+    default:
+      return "idle";
+  }
+}
+
+function getAttemptMethodLabel(method: string): string {
+  const normalized = method.toLowerCase();
+  if (normalized.includes("playwright")) return "Lecture navigateur";
+  if (normalized.includes("jsonld")) return "Données structurées";
+  if (normalized.includes("next")) return "Données Next.js";
+  if (normalized.includes("html")) return "Liens de la page";
+  if (normalized.includes("api")) return "API du site";
+  return method.replace(/[_-]+/g, " ");
+}
+
 function SourceDiagnosticsCard({
   url,
   runSummary,
@@ -153,33 +285,51 @@ function SourceDiagnosticsCard({
 }) {
   const meta = getUrlSourceMeta(url || "");
   const host = getHostFromUrl(url);
+  const summary = getDiagnosticSummary(url, runSummary);
 
   return (
-    <article className="radar-source-card">
-      <div className="radar-source-card__summary">
+    <article className={`radar-source-card radar-source-card--${summary.tone}`}>
+      <div className="radar-source-card__top">
         <div>
           <strong className="radar-source-card__title">{meta.label}</strong>
-          <div className="radar-source-card__metrics">
-            <span>Parsed {runSummary?.parsed ?? 0}</span>
-            <span>Nouvelles {runSummary?.visible ?? 0}</span>
-            <span>Erreurs {runSummary?.errors?.length ?? 0}</span>
-          </div>
+          <span className="radar-source-card__host">{host || "URL vide"}</span>
         </div>
-        {runSummary?.selectedMethod ? <span className="radar-count-pill">{runSummary.selectedMethod}</span> : null}
+        <span className={`radar-diagnostic-status radar-diagnostic-status--${summary.tone}`}>{summary.label}</span>
       </div>
+
+      <p className="radar-source-card__message">{summary.message}</p>
+
+      <dl className="radar-source-card__metrics">
+        <div>
+          <dt>Offres trouvées</dt>
+          <dd>{summary.found}</dd>
+        </div>
+        <div>
+          <dt>Gardées</dt>
+          <dd>{summary.kept}</dd>
+        </div>
+        <div>
+          <dt>Problèmes</dt>
+          <dd>{summary.errors}</dd>
+        </div>
+      </dl>
 
       <button
         type="button"
         className="radar-inline-button radar-inline-button--diagnostic"
-        onClick={() => onOpenDiagnostic({ label: meta.label, host: host || "URL vide", runSummary, lastRunAt })}
+        onClick={() => onOpenDiagnostic({ label: meta.label, host: host || "URL vide", url, runSummary, lastRunAt })}
       >
-        Voir le diagnostic
+        Ouvrir le détail
       </button>
     </article>
   );
 }
 
 function DiagnosticOverlay({ diagnostic, onClose }: { diagnostic: DiagnosticState; onClose: () => void }) {
+  const summary = getDiagnosticSummary(diagnostic.url, diagnostic.runSummary);
+  const attempts = diagnostic.runSummary?.attempts ?? [];
+  const errors = diagnostic.runSummary?.errors ?? [];
+
   return (
     <div className="radar-detail-overlay" role="presentation" onClick={onClose}>
       <section
@@ -196,34 +346,72 @@ function DiagnosticOverlay({ diagnostic, onClose }: { diagnostic: DiagnosticStat
             </div>
             <div>
               <strong className="radar-modal__title">{diagnostic.label}</strong>
-              <div className="radar-modal__subtitle">Site: {diagnostic.host}</div>
+              <div className="radar-modal__subtitle">{diagnostic.host}</div>
             </div>
           </div>
           <CloseButton onClick={onClose} />
         </div>
 
-        <div className="radar-mini-stack">
-          <div>Dernier check: {formatDate(diagnostic.lastRunAt)}</div>
-          {diagnostic.runSummary?.selectedMethod ? <div>Méthode retenue: {diagnostic.runSummary.selectedMethod}</div> : null}
-          {diagnostic.runSummary?.attempts?.length ? (
-            <>
-              <strong>Méthodes testées</strong>
-              {diagnostic.runSummary.attempts.map((attempt, attemptIndex) => (
+        <div className="radar-diagnostic-summary">
+          <div className="radar-diagnostic-summary__main">
+            <span className={`radar-diagnostic-status radar-diagnostic-status--${summary.tone}`}>{summary.label}</span>
+            <p>{summary.message}</p>
+          </div>
+          <dl className="radar-diagnostic-summary__metrics">
+            <div>
+              <dt>Dernière vérification</dt>
+              <dd>{summary.hasRun ? formatDate(diagnostic.lastRunAt) : "À venir"}</dd>
+            </div>
+            <div>
+              <dt>Offres trouvées</dt>
+              <dd>{summary.found}</dd>
+            </div>
+            <div>
+              <dt>Gardées</dt>
+              <dd>{summary.kept}</dd>
+            </div>
+            <div>
+              <dt>Problèmes</dt>
+              <dd>{summary.errors}</dd>
+            </div>
+          </dl>
+        </div>
+
+        {errors.length > 0 ? (
+          <section className="radar-diagnostic-section">
+            <strong>À vérifier</strong>
+            <ul className="radar-diagnostic-error-list">
+              {errors.map((error, index) => (
+                <li key={`${diagnostic.host}-error-${index}`}>{error}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        <details className="radar-diagnostic-technical" open={errors.length > 0}>
+          <summary>Voir les essais techniques</summary>
+          {attempts.length ? (
+            <div className="radar-attempt-list">
+              {attempts.map((attempt, attemptIndex) => (
                 <div key={`${diagnostic.host}-attempt-${attemptIndex}`} className="radar-attempt-row">
-                  <span>{attempt.method}</span>
-                  <span>
-                    {attempt.status} | {attempt.parsed} détectées | {attempt.visible} visibles
-                    {typeof attempt.qualityScore === "number" ? ` | score ${attempt.qualityScore}` : ""}
-                    {attempt.note ? ` | ${attempt.note}` : ""}
-                  </span>
+                  <div className="radar-attempt-row__top">
+                    <strong>{getAttemptMethodLabel(attempt.method)}</strong>
+                    <span className={`radar-diagnostic-status radar-diagnostic-status--${getAttemptTone(attempt.status)}`}>
+                      {getAttemptStatusLabel(attempt.status)}
+                    </span>
+                  </div>
+                  <div className="radar-attempt-row__meta">
+                    <span>{pluralizeCount(attempt.parsed, "offre trouvée", "offres trouvées")}</span>
+                    <span>{pluralizeCount(attempt.visible, "gardée", "gardées")}</span>
+                  </div>
+                  {attempt.note ? <p>{attempt.note}</p> : null}
                 </div>
               ))}
-            </>
+            </div>
           ) : (
-            <div>Aucune tentative détaillée sur le dernier cycle.</div>
+            <p className="radar-secondary-note">Aucun essai détaillé enregistré pour le dernier cycle.</p>
           )}
-          {diagnostic.runSummary?.errors?.length ? <div className="radar-inline-error">{diagnostic.runSummary.errors.join(" | ")}</div> : null}
-        </div>
+        </details>
       </section>
     </div>
   );
