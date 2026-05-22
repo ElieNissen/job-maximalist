@@ -756,6 +756,36 @@ input {
   }
 }
 
+@keyframes radar-url-field-arrive {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(-8px) scale(0.992);
+  }
+
+  70% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(1px) scale(1.004);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes radar-url-add-button-shift {
+  0% {
+    transform: translateY(-12px) scale(0.992);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes radar-token-arrive {
   0% {
     opacity: 0;
@@ -1670,6 +1700,15 @@ input {
   gap: 8px;
 }
 
+.radar-url-row.is-new {
+  transform-origin: center top;
+  animation: radar-url-field-arrive 360ms var(--motion-ease-emphasized) both;
+}
+
+.radar-url-add-actions.is-shifting {
+  animation: radar-url-add-button-shift 360ms var(--motion-ease-emphasized) both;
+}
+
 .radar-inline-button {
   color: var(--muted-strong);
   line-height: 1.2;
@@ -2290,6 +2329,8 @@ input {
   .radar-chip--filter.is-filter-entering,
   .radar-chip--filter.is-filter-leaving,
   .radar-filter-token.is-new,
+  .radar-url-row.is-new,
+  .radar-url-add-actions.is-shifting,
   .radar-token-add,
   .radar-bookmark-button.is-active .radar-bookmark-icon {
     animation: none;

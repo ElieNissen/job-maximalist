@@ -627,6 +627,15 @@ function FiltersPanel({
 }
 
 function UrlsSettingsPanel({ draftConfig, setDraftConfig }: { draftConfig: UrlRadarConfig; setDraftConfig: Dispatch<SetStateAction<UrlRadarConfig>> }) {
+  const [newUrlIndex, setNewUrlIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (newUrlIndex === null) return undefined;
+
+    const timeout = window.setTimeout(() => setNewUrlIndex(null), 420);
+    return () => window.clearTimeout(timeout);
+  }, [newUrlIndex]);
+
   const updateUrlAt = (index: number, value: string) => {
     setDraftConfig((prev) => ({
       ...prev,
@@ -635,6 +644,7 @@ function UrlsSettingsPanel({ draftConfig, setDraftConfig }: { draftConfig: UrlRa
   };
 
   const addUrlField = () => {
+    setNewUrlIndex(draftConfig.urls.length);
     setDraftConfig((prev) => ({ ...prev, urls: [...prev.urls, ""] }));
   };
 
@@ -667,7 +677,7 @@ function UrlsSettingsPanel({ draftConfig, setDraftConfig }: { draftConfig: UrlRa
 
       <div className="radar-url-list">
         {draftConfig.urls.map((url, index) => (
-          <div key={`url-field-${index}`} className="radar-url-row">
+          <div key={`url-field-${index}`} className={`radar-url-row${index === newUrlIndex ? " is-new" : ""}`}>
             <input type="text" value={url} onChange={(event) => updateUrlAt(index, event.target.value)} placeholder="https://..." />
             <button type="button" className="radar-inline-button" onClick={() => removeUrlField(index)}>
               Suppr.
@@ -676,7 +686,7 @@ function UrlsSettingsPanel({ draftConfig, setDraftConfig }: { draftConfig: UrlRa
         ))}
       </div>
 
-      <div className="radar-inline-actions">
+      <div className={`radar-inline-actions radar-url-add-actions${newUrlIndex !== null ? " is-shifting" : ""}`}>
         <button type="button" className="radar-filter-action radar-token-add-trigger" onClick={addUrlField}>
           <HugeiconsIcon icon={Add01Icon} size={15} strokeWidth={2.2} aria-hidden="true" />
           Ajouter une URL
