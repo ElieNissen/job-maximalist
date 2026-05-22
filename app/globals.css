@@ -1627,17 +1627,13 @@ input {
   padding: 14px 16px;
   border: 1px solid rgba(74, 64, 57, 0.16);
   border-radius: 16px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 96%, var(--surface-soft) 4%) 0%,
-    color-mix(in srgb, var(--surface) 87%, var(--surface-soft) 13%) 100%
-  );
+  background: var(--surface);
   background-clip: padding-box;
   box-shadow: 0 1px 2px rgba(56, 46, 38, 0.025);
 }
 
 :root[data-theme="dark"] .radar-source-card {
-  background: var(--surface-soft);
+  background: var(--surface);
   border-color: rgba(238, 225, 213, 0.1);
   box-shadow: none;
 }
@@ -1690,12 +1686,14 @@ input {
 }
 
 .radar-modal--settings {
+  --settings-modal-surface: color-mix(in srgb, var(--bg) 48%, var(--surface) 52%);
   width: min(100%, 1080px);
   height: min(1060px, calc(100vh - 16px));
   max-height: calc(100vh - 16px);
   gap: 14px;
   padding: 18px 20px;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
+  background: var(--settings-modal-surface);
 }
 
 .radar-modal--settings .radar-modal__header {
@@ -1717,6 +1715,10 @@ input {
 :root[data-theme="dark"] .radar-detail-dialog {
   background: var(--surface);
   box-shadow: none;
+}
+
+:root[data-theme="dark"] .radar-modal--settings {
+  background: var(--settings-modal-surface);
 }
 
 .radar-modal__header {
@@ -1791,11 +1793,11 @@ input {
   z-index: 2;
   padding-top: 2px;
   padding-bottom: 10px;
-  background: linear-gradient(to bottom, var(--surface) 0%, var(--surface) 82%, transparent 100%);
+  background: linear-gradient(to bottom, var(--settings-modal-surface) 0%, var(--settings-modal-surface) 82%, transparent 100%);
 }
 
 :root[data-theme="dark"] .radar-filter-impact-sticky {
-  background: linear-gradient(to bottom, var(--surface) 0%, var(--surface) 82%, transparent 100%);
+  background: linear-gradient(to bottom, var(--settings-modal-surface) 0%, var(--settings-modal-surface) 82%, transparent 100%);
 }
 
 .radar-filter-impact-banner {
@@ -1844,18 +1846,14 @@ input {
   padding: 18px;
   border: 1px solid rgba(74, 64, 57, 0.16);
   border-radius: 20px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 96%, var(--surface-soft) 4%) 0%,
-    color-mix(in srgb, var(--surface) 87%, var(--surface-soft) 13%) 100%
-  );
+  background: var(--surface);
   background-clip: padding-box;
   box-shadow: 0 1px 2px rgba(56, 46, 38, 0.025);
 }
 
 :root[data-theme="dark"] .radar-form-grid--filters .radar-filter-group {
   border-color: rgba(238, 225, 213, 0.1);
-  background: var(--surface-soft);
+  background: var(--surface);
   box-shadow: none;
 }
 
