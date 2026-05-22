@@ -1433,6 +1433,19 @@ input {
   padding: 4px 10px 16px;
 }
 
+.radar-form-grid--urls .radar-inline-actions {
+  align-items: flex-start;
+  align-self: start;
+}
+
+.radar-form-grid--urls .radar-token-add-trigger {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
+}
+
 .radar-refresh-settings {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;

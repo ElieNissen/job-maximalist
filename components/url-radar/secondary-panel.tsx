@@ -677,7 +677,8 @@ function UrlsSettingsPanel({ draftConfig, setDraftConfig }: { draftConfig: UrlRa
       </div>
 
       <div className="radar-inline-actions">
-        <button type="button" className="radar-inline-button" onClick={addUrlField}>
+        <button type="button" className="radar-filter-action radar-token-add-trigger" onClick={addUrlField}>
+          <HugeiconsIcon icon={Add01Icon} size={15} strokeWidth={2.2} aria-hidden="true" />
           Ajouter une URL
         </button>
       </div>
