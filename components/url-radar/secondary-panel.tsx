@@ -326,9 +326,7 @@ function SourceDiagnosticsCard({
 }
 
 function DiagnosticOverlay({ diagnostic, onClose }: { diagnostic: DiagnosticState; onClose: () => void }) {
-  const summary = getDiagnosticSummary(diagnostic.url, diagnostic.runSummary);
   const attempts = diagnostic.runSummary?.attempts ?? [];
-  const errors = diagnostic.runSummary?.errors ?? [];
 
   return (
     <div className="radar-detail-overlay" role="presentation" onClick={onClose}>
@@ -352,44 +350,10 @@ function DiagnosticOverlay({ diagnostic, onClose }: { diagnostic: DiagnosticStat
           <CloseButton onClick={onClose} />
         </div>
 
-        <div className="radar-diagnostic-summary">
-          <div className="radar-diagnostic-summary__main">
-            <span className={`radar-diagnostic-status radar-diagnostic-status--${summary.tone}`}>{summary.label}</span>
-            <p>{summary.message}</p>
-          </div>
-          <dl className="radar-diagnostic-summary__metrics">
-            <div>
-              <dt>Dernière vérification</dt>
-              <dd>{summary.hasRun ? formatDate(diagnostic.lastRunAt) : "À venir"}</dd>
-            </div>
-            <div>
-              <dt>Offres trouvées</dt>
-              <dd>{summary.found}</dd>
-            </div>
-            <div>
-              <dt>Gardées</dt>
-              <dd>{summary.kept}</dd>
-            </div>
-            <div>
-              <dt>Problèmes</dt>
-              <dd>{summary.errors}</dd>
-            </div>
-          </dl>
-        </div>
-
-        {errors.length > 0 ? (
-          <section className="radar-diagnostic-section">
-            <strong>À vérifier</strong>
-            <ul className="radar-diagnostic-error-list">
-              {errors.map((error, index) => (
-                <li key={`${diagnostic.host}-error-${index}`}>{error}</li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        <details className="radar-diagnostic-technical" open={errors.length > 0}>
-          <summary>Voir les essais techniques</summary>
+        <section className="radar-diagnostic-technical" aria-labelledby="diagnostic-methods-title">
+          <strong id="diagnostic-methods-title" className="radar-diagnostic-technical__title">
+            Méthodes testées
+          </strong>
           {attempts.length ? (
             <div className="radar-attempt-list">
               {attempts.map((attempt, attemptIndex) => (
@@ -411,7 +375,7 @@ function DiagnosticOverlay({ diagnostic, onClose }: { diagnostic: DiagnosticStat
           ) : (
             <p className="radar-secondary-note">Aucun essai détaillé enregistré pour le dernier cycle.</p>
           )}
-        </details>
+        </section>
       </section>
     </div>
   );

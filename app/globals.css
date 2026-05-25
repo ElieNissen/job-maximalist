@@ -1799,22 +1799,19 @@ input {
   margin: 0;
 }
 
-.radar-source-card__metrics div,
-.radar-diagnostic-summary__metrics div {
+.radar-source-card__metrics div {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
 
-.radar-source-card__metrics dt,
-.radar-diagnostic-summary__metrics dt {
+.radar-source-card__metrics dt {
   color: var(--muted);
   font-size: 0.76rem;
   line-height: 1.25;
 }
 
-.radar-source-card__metrics dd,
-.radar-diagnostic-summary__metrics dd {
+.radar-source-card__metrics dd {
   margin: 0;
   color: var(--text);
   font-size: 1.02rem;
@@ -2406,30 +2403,11 @@ input {
   animation: radar-surface-enter var(--motion-standard) var(--motion-ease-emphasized) both;
 }
 
-.radar-diagnostic-summary,
-.radar-diagnostic-section,
 .radar-diagnostic-technical {
   display: grid;
   gap: 12px;
-  padding: 14px;
-  border: 1px solid rgba(74, 64, 57, 0.1);
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--surface-soft) 84%, white 16%);
 }
 
-:root[data-theme="dark"] .radar-diagnostic-summary,
-:root[data-theme="dark"] .radar-diagnostic-section,
-:root[data-theme="dark"] .radar-diagnostic-technical {
-  border-color: rgba(238, 225, 213, 0.08);
-  background: var(--surface-soft);
-}
-
-.radar-diagnostic-summary__main {
-  display: grid;
-  gap: 8px;
-}
-
-.radar-diagnostic-summary__main p,
 .radar-attempt-row p {
   margin: 0;
   color: var(--muted);
@@ -2437,39 +2415,11 @@ input {
   line-height: 1.5;
 }
 
-.radar-diagnostic-summary__metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0;
-}
-
-.radar-diagnostic-section > strong {
+.radar-diagnostic-technical__title {
   color: var(--text);
-  font-size: 1rem;
-  line-height: 1.2;
-}
-
-.radar-diagnostic-error-list {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding-left: 18px;
-  color: var(--muted-strong);
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-.radar-diagnostic-technical summary {
-  width: fit-content;
-  color: var(--muted-strong);
-  font-size: 0.9rem;
+  font-size: 0.96rem;
   font-weight: 700;
-  cursor: pointer;
-}
-
-.radar-diagnostic-technical summary::marker {
-  color: var(--muted);
+  line-height: 1.2;
 }
 
 .radar-attempt-list {
@@ -2632,7 +2582,6 @@ input {
   .radar-toolbar,
   .radar-toolbar__actions,
   .radar-source-card__top,
-  .radar-diagnostic-summary__metrics,
   .radar-list-section__header,
   .radar-job-card__topline,
   .radar-modal__header,
