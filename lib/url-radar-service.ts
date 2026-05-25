@@ -60,7 +60,7 @@ export interface UrlRadarRun {
   status: RunStatus;
   newCount: number;
   error: string | null;
-  summary: Record<string, { parsed: number; visible: number; errors: string[]; attempts: StrategyAttempt[]; selectedMethod: string | null }>;
+  summary: Record<string, { parsed: number; visible: number; newVisible?: number; errors: string[]; attempts: StrategyAttempt[]; selectedMethod: string | null }>;
 }
 
 interface UrlRadarState {
@@ -136,12 +136,12 @@ function scoreJobsQuality(jobs: NormalizedJob[]): { visible: number; score: numb
     postedRatio * 5;
 
   const parts = [
-    `${visible} visibles`,
+    `${visible} exploitables`,
     `${cleanTitles}/${jobs.length} titres propres`,
     `${cleanCompanies}/${jobs.length} entreprises plausibles`
   ];
   if (cleanLocations > 0) {
-    parts.push(`${cleanLocations}/${jobs.length} lieux precis`);
+    parts.push(`${cleanLocations}/${jobs.length} lieux précis`);
   }
 
   return { visible, score: Math.round(score * 10) / 10, note: parts.join(" | ") };
@@ -2421,10 +2421,10 @@ export async function reclassifyUrlRadarState(config: UrlRadarConfig): Promise<{
   };
 }
 
-export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNew: number; summary: Record<string, { parsed: number; visible: number; errors: string[]; attempts: StrategyAttempt[]; selectedMethod: string | null }> }> {
+export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNew: number; summary: Record<string, { parsed: number; visible: number; newVisible: number; errors: string[]; attempts: StrategyAttempt[]; selectedMethod: string | null }> }> {
   const filters = getUrlRadarFilters(config);
   const state = await readState(filters);
-  const summary: Record<string, { parsed: number; visible: number; errors: string[]; attempts: StrategyAttempt[]; selectedMethod: string | null }> = {};
+  const summary: Record<string, { parsed: number; visible: number; newVisible: number; errors: string[]; attempts: StrategyAttempt[]; selectedMethod: string | null }> = {};
   let totalNew = 0;
 
   const jobsById = new Map(state.jobs.map((job) => [job.id, job]));
@@ -2435,6 +2435,7 @@ export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNe
     summary[url] = {
       parsed: result.jobs.length,
       visible: 0,
+      newVisible: 0,
       errors: result.errors,
       attempts: result.attempts,
       selectedMethod: result.selectedMethod ?? null
@@ -2444,6 +2445,11 @@ export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNe
       const filter = matchesFilters(job, filters);
       const stored = toStoredJob(job, seenAt, filter.matchedKeywords, filter.excludedReason, filter.excludedKeywords);
       const existing = jobsById.get(stored.id);
+      const passesCurrentFilters = stored.excludedReason === null;
+
+      if (passesCurrentFilters) {
+        summary[url].visible += 1;
+      }
 
       if (existing) {
         const existingPostedAt = new Date(existing.postedAt);
@@ -2466,9 +2472,9 @@ export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNe
         });
       } else {
         jobsById.set(stored.id, stored);
-        if (stored.excludedReason === null) {
+        if (passesCurrentFilters) {
           totalNew += 1;
-          summary[url].visible += 1;
+          summary[url].newVisible += 1;
         }
       }
     }

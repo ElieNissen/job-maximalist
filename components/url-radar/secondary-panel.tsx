@@ -203,7 +203,7 @@ function getDiagnosticSummary(url: string, runSummary: DiagnosticState["runSumma
     return {
       tone: "ok",
       label: "Fonctionne",
-      message: `${pluralizeCount(kept, "offre gardée", "offres gardées")} après filtrage.`,
+      message: `${pluralizeCount(kept, "offre passe", "offres passent")} les filtres actuels.`,
       found,
       kept,
       errors,
@@ -214,8 +214,8 @@ function getDiagnosticSummary(url: string, runSummary: DiagnosticState["runSumma
   if (found > 0) {
     return {
       tone: "empty",
-      label: "Tout est filtré",
-      message: "Des offres ont été trouvées, mais aucune ne passe les filtres actuels.",
+      label: "Tout a été exclu",
+      message: "Des offres ont été trouvées, mais elles sont toutes exclues par les filtres actuels.",
       found,
       kept,
       errors,
@@ -305,7 +305,7 @@ function SourceDiagnosticsCard({
           <dd>{summary.found}</dd>
         </div>
         <div>
-          <dt>Gardées</dt>
+          <dt>Après filtres</dt>
           <dd>{summary.kept}</dd>
         </div>
         <div>
@@ -365,8 +365,8 @@ function DiagnosticOverlay({ diagnostic, onClose }: { diagnostic: DiagnosticStat
                     </span>
                   </div>
                   <div className="radar-attempt-row__meta">
-                    <span>{pluralizeCount(attempt.parsed, "offre trouvée", "offres trouvées")}</span>
-                    <span>{pluralizeCount(attempt.visible, "gardée", "gardées")}</span>
+                    <span>{pluralizeCount(attempt.parsed, "offre détectée", "offres détectées")}</span>
+                    <span>{pluralizeCount(attempt.visible, "exploitable", "exploitables")}</span>
                   </div>
                   {attempt.note ? <p>{attempt.note}</p> : null}
                 </div>

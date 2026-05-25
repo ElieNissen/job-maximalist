@@ -60,6 +60,7 @@ export type UrlRadarStatusResponse = {
     {
       parsed: number;
       visible: number;
+      newVisible?: number;
       errors: string[];
       attempts: CrawlAttemptSummary[];
       selectedMethod: string | null;
@@ -85,6 +86,7 @@ export type UrlRadarRefreshResponse = {
     {
       parsed: number;
       visible: number;
+      newVisible?: number;
       errors: string[];
       attempts: CrawlAttemptSummary[];
       selectedMethod: string | null;
