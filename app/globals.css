@@ -1738,7 +1738,12 @@ input {
 }
 
 .radar-inline-button--diagnostic {
+  align-self: end;
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
   justify-content: center;
+  padding: 7px 12px;
 }
 
 .radar-inline-button--filters {
