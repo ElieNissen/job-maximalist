@@ -2399,13 +2399,6 @@ input {
   line-height: 1.5;
 }
 
-.radar-diagnostic-technical__title {
-  color: var(--text);
-  font-size: 0.96rem;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
 .radar-attempt-list {
   display: grid;
   gap: 8px;

@@ -342,10 +342,7 @@ function DiagnosticOverlay({ diagnostic, onClose }: { diagnostic: DiagnosticStat
           <CloseButton onClick={onClose} />
         </div>
 
-        <section className="radar-diagnostic-technical" aria-labelledby="diagnostic-methods-title">
-          <strong id="diagnostic-methods-title" className="radar-diagnostic-technical__title">
-            Méthodes testées
-          </strong>
+        <section className="radar-diagnostic-technical" aria-label="Méthodes testées">
           {attempts.length ? (
             <div className="radar-attempt-list">
               {attempts.map((attempt, attemptIndex) => (
