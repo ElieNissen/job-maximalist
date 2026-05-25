@@ -551,8 +551,7 @@ input {
   animation: radar-page-group-enter 460ms var(--motion-ease-emphasized) 125ms both;
 }
 
-.radar-button-icon,
-.radar-dialog-icon {
+.radar-button-icon {
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
@@ -1963,26 +1962,6 @@ input {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-}
-
-.radar-modal__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--surface-soft) 88%, white 12%);
-  color: var(--muted-strong);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 8px 16px rgba(52, 42, 35, 0.05);
-}
-
-:root[data-theme="dark"] .radar-modal__icon {
-  background: var(--surface-soft);
-  box-shadow: none;
 }
 
 .radar-modal__title {

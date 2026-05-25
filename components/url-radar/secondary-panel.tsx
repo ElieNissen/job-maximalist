@@ -5,7 +5,6 @@ import type { CSSProperties } from "react";
 import {
   Add01Icon,
   Cancel01Icon,
-  Layers02Icon,
   Tick02Icon,
   Undo02Icon
 } from "@hugeicons/core-free-icons";
@@ -139,10 +138,6 @@ function toggleExcludedKeywords(excluded: string[], keywords: readonly string[],
     seen.add(key);
   }
   return next;
-}
-
-function LayersIcon() {
-  return <HugeiconsIcon icon={Layers02Icon} size={16} strokeWidth={2} className="radar-dialog-icon" />;
 }
 
 function CloseButton({ onClick }: { onClick: () => void }) {
@@ -339,9 +334,6 @@ function DiagnosticOverlay({ diagnostic, onClose }: { diagnostic: DiagnosticStat
       >
         <div className="radar-modal__header">
           <div className="radar-modal__title-wrap">
-            <div className="radar-modal__icon">
-              <LayersIcon />
-            </div>
             <div>
               <strong className="radar-modal__title">{diagnostic.label}</strong>
               <div className="radar-modal__subtitle">{diagnostic.host}</div>
