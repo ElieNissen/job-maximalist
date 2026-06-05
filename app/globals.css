@@ -27,20 +27,29 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #171514;
+  --bg: oklch(17.5% 0.007 42);
   --text: #f4efe8;
-  --surface: #312b27;
-  --surface-soft: #24201d;
-  --surface-muted: #1e1a18;
-  --surface-raised: color-mix(in srgb, var(--surface) 92%, white 8%);
-  --accent: #d7b69f;
-  --accent-soft: rgba(215, 182, 159, 0.12);
-  --muted: #b5aaa0;
-  --muted-strong: #e5ddd6;
-  --border: rgba(238, 225, 213, 0.1);
-  --border-strong: rgba(238, 225, 213, 0.2);
-  --shadow-card: 0 12px 24px rgba(0, 0, 0, 0.2);
-  --shadow-card-hover: 0 16px 32px rgba(0, 0, 0, 0.26);
+  --surface-muted: oklch(20.5% 0.007 42);
+  --surface-soft: oklch(22.5% 0.0075 42);
+  --surface: oklch(24.8% 0.008 42);
+  --surface-raised: oklch(27.5% 0.0085 42);
+  --surface-hover: oklch(29.5% 0.009 42);
+  --surface-selected: color-mix(in oklch, var(--surface-raised) 91%, var(--accent) 9%);
+  --accent: oklch(74% 0.042 42);
+  --accent-soft: oklch(74% 0.042 42 / 0.12);
+  --muted: oklch(74% 0.014 42);
+  --muted-strong: oklch(85% 0.013 42);
+  --border: oklch(86% 0.013 42 / 0.11);
+  --border-strong: oklch(86% 0.013 42 / 0.2);
+  --focus-ring: oklch(74% 0.042 42 / 0.2);
+  --success-bg: oklch(68% 0.055 150 / 0.11);
+  --success-border: oklch(72% 0.055 150 / 0.2);
+  --success-text: oklch(82% 0.045 145);
+  --warning-bg: oklch(72% 0.04 46 / 0.11);
+  --warning-border: oklch(76% 0.04 46 / 0.2);
+  --warning-text: oklch(84% 0.038 46);
+  --shadow-card: none;
+  --shadow-card-hover: none;
 }
 
 * {
@@ -117,8 +126,8 @@ input {
 }
 
 :root[data-theme="dark"] .radar-navigation-band {
-  background: var(--surface);
-  border-bottom-color: rgba(238, 225, 213, 0.08);
+  background: var(--surface-muted);
+  border-bottom-color: var(--border);
   box-shadow: none;
 }
 
@@ -270,7 +279,7 @@ input {
 
 :root[data-theme="dark"] .radar-tab-row {
   background: var(--surface-soft);
-  border-color: rgba(238, 225, 213, 0.14);
+  border-color: var(--border);
   box-shadow: none;
 }
 
@@ -304,8 +313,8 @@ input {
 
 :root[data-theme="dark"] .radar-tab-row__indicator {
   background: var(--surface-raised);
-  border-color: rgba(215, 182, 159, 0.24);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-color: color-mix(in oklch, var(--accent) 24%, transparent);
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.05);
 }
 
 .radar-tab-button strong,
@@ -360,22 +369,22 @@ input {
 :root[data-theme="dark"] .radar-settings-tab,
 :root[data-theme="dark"] .radar-token-add__save {
   background: var(--surface);
-  border-color: rgba(238, 225, 213, 0.12);
+  border-color: var(--border);
   color: var(--muted-strong);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .radar-chip.is-active.is-neutral {
   background: var(--surface-raised);
-  border-color: rgba(215, 182, 159, 0.28);
+  border-color: color-mix(in oklch, var(--accent) 28%, transparent);
   color: var(--text);
 }
 
 :root[data-theme="dark"] .radar-chip {
   background: var(--surface);
-  border-color: rgba(238, 225, 213, 0.14);
+  border-color: var(--border);
   color: var(--muted-strong);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: none;
 }
 
 .radar-icon-toggle {
@@ -405,9 +414,9 @@ input {
 :root[data-theme="dark"] .radar-token-add__save:hover,
 :root[data-theme="dark"] .radar-bookmark-button:not(.is-active):hover,
 :root[data-theme="dark"] .radar-close-button:hover {
-  background: color-mix(in srgb, var(--surface) 96%, white 4%);
-  border-color: rgba(238, 225, 213, 0.16);
-  color: var(--muted-strong);
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  color: var(--text);
 }
 
 :root[data-theme="dark"] .radar-tab-button:not(.is-active):hover {
@@ -418,14 +427,14 @@ input {
 
 :root[data-theme="dark"] .radar-utility-button.is-active,
 :root[data-theme="dark"] .radar-settings-tab.is-active {
-  background: rgba(215, 182, 159, 0.14);
-  border-color: rgba(215, 182, 159, 0.3);
+  background: var(--surface-selected);
+  border-color: color-mix(in oklch, var(--accent) 28%, transparent);
   color: var(--text);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .radar-chip.is-active.is-neutral {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 .radar-chip {
@@ -493,8 +502,8 @@ input {
 }
 
 :root[data-theme="dark"] .radar-primary-action {
-  background: #f4efe8;
-  color: #171514;
+  background: var(--text);
+  color: var(--bg);
   box-shadow: none;
 }
 
@@ -1164,12 +1173,12 @@ input {
 }
 
 :root[data-theme="dark"] .radar-empty-state {
-  border-top-color: rgba(238, 225, 213, 0.14);
+  border-top-color: var(--border);
 }
 
 :root[data-theme="dark"] .radar-empty-state__callout::before,
 :root[data-theme="dark"] .radar-empty-state__callout::after {
-  background-image: linear-gradient(to right, rgba(238, 225, 213, 0.3) 33%, rgba(255, 255, 255, 0) 0%);
+  background-image: linear-gradient(to right, color-mix(in oklch, var(--muted) 42%, transparent) 33%, transparent 0%);
 }
 
 .radar-empty-state__bubble {
@@ -1193,6 +1202,7 @@ input {
 
 :root[data-theme="dark"] .radar-empty-state__bubble {
   background: var(--surface);
+  border-color: var(--border);
   box-shadow: none;
 }
 
@@ -1252,7 +1262,7 @@ input {
 
 :root[data-theme="dark"] .radar-job-card {
   background: var(--surface);
-  border-color: rgba(238, 225, 213, 0.08);
+  border-color: var(--border);
   box-shadow: none;
 }
 
@@ -1261,16 +1271,16 @@ input {
 }
 
 :root[data-theme="dark"] .radar-job-card:hover {
-  border-color: rgba(238, 225, 213, 0.16);
+  border-color: var(--border-strong);
 }
 
 :root[data-theme="dark"] .radar-job-card:focus-within {
-  border-color: rgba(238, 225, 213, 0.24);
-  box-shadow: 0 0 0 3px rgba(226, 159, 117, 0.16);
+  border-color: color-mix(in oklch, var(--accent) 24%, transparent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 :root[data-theme="dark"] .radar-job-card.is-bookmarked {
-  border-color: rgba(104, 168, 124, 0.22);
+  border-color: var(--success-border);
 }
 
 .radar-job-card.is-excluded {
@@ -1278,17 +1288,17 @@ input {
 }
 
 :root[data-theme="dark"] .radar-job-card.is-excluded {
-  border-color: rgba(184, 132, 105, 0.2);
+  border-color: var(--warning-border);
 }
 
 :root[data-theme="dark"] .radar-job-card.is-bookmarked:hover,
 :root[data-theme="dark"] .radar-job-card.is-bookmarked:focus-within {
-  border-color: rgba(124, 190, 145, 0.28);
+  border-color: color-mix(in oklch, var(--success-border) 80%, var(--text) 20%);
 }
 
 :root[data-theme="dark"] .radar-job-card.is-excluded:hover,
 :root[data-theme="dark"] .radar-job-card.is-excluded:focus-within {
-  border-color: rgba(208, 156, 128, 0.24);
+  border-color: color-mix(in oklch, var(--warning-border) 80%, var(--text) 20%);
 }
 
 .radar-job-card__topline {
@@ -1331,8 +1341,8 @@ input {
 :root[data-theme="dark"] .radar-secondary-note,
 :root[data-theme="dark"] .radar-count-pill,
 :root[data-theme="dark"] .radar-meta-chip {
-  border-color: rgba(238, 225, 213, 0.08);
-  color: #d8cfc7;
+  border-color: var(--border);
+  color: var(--muted-strong);
 }
 
 .radar-chip--source {
@@ -1367,15 +1377,22 @@ input {
 
 :root[data-theme="dark"] .radar-bookmark-button,
 :root[data-theme="dark"] .radar-close-button {
-  background: var(--surface);
-  border-color: rgba(238, 225, 213, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--surface-raised);
+  border-color: var(--border);
+  color: var(--muted-strong);
+  box-shadow: none;
 }
 
 .radar-bookmark-button.is-active {
   background: rgba(60, 151, 94, 0.12);
   border-color: rgba(60, 151, 94, 0.22);
   color: #2f7d4c;
+}
+
+:root[data-theme="dark"] .radar-bookmark-button.is-active {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success-text);
 }
 
 .radar-bookmark-icon {
@@ -1473,6 +1490,40 @@ input {
   background: rgba(238, 235, 230, 0.9);
   border-color: rgba(106, 98, 88, 0.16);
   color: #5a5148;
+}
+
+:root[data-theme="dark"] .radar-reason-chip__icon {
+  background: color-mix(in oklch, var(--text) 10%, transparent);
+}
+
+:root[data-theme="dark"] .radar-reason-chip--title {
+  background: oklch(70% 0.038 46 / 0.1);
+  border-color: oklch(74% 0.038 46 / 0.18);
+  color: oklch(82% 0.033 46);
+}
+
+:root[data-theme="dark"] .radar-reason-chip--keyword {
+  background: oklch(68% 0.055 24 / 0.11);
+  border-color: oklch(72% 0.055 24 / 0.18);
+  color: oklch(82% 0.045 24);
+}
+
+:root[data-theme="dark"] .radar-reason-chip--location {
+  background: oklch(68% 0.045 250 / 0.11);
+  border-color: oklch(72% 0.045 250 / 0.18);
+  color: oklch(82% 0.038 250);
+}
+
+:root[data-theme="dark"] .radar-reason-chip--contract {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success-text);
+}
+
+:root[data-theme="dark"] .radar-reason-chip--generic {
+  background: var(--surface-raised);
+  border-color: var(--border);
+  color: var(--muted-strong);
 }
 
 .radar-field {
@@ -1668,35 +1719,35 @@ input {
 }
 
 :root[data-theme="dark"] .radar-checkbox-row {
-  border-color: rgba(238, 225, 213, 0.12);
+  border-color: var(--border);
   background: var(--surface);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .radar-checkbox-row:hover {
-  border-color: rgba(238, 225, 213, 0.18);
+  border-color: var(--border-strong);
   background: var(--surface-raised);
 }
 
 :root[data-theme="dark"] .radar-checkbox-row:focus-within {
-  border-color: rgba(238, 225, 213, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .radar-checkbox-row.is-checked {
-  border-color: rgba(215, 182, 159, 0.22);
-  background: var(--surface-raised);
+  border-color: color-mix(in oklch, var(--accent) 26%, transparent);
+  background: var(--surface-selected);
 }
 
 :root[data-theme="dark"] .radar-checkbox-row__control {
-  border-color: rgba(238, 225, 213, 0.24);
-  background: color-mix(in srgb, var(--surface) 82%, white 18%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-color: var(--border-strong);
+  background: var(--surface-raised);
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .radar-checkbox-row.is-checked .radar-checkbox-row__control {
-  border-color: rgba(215, 182, 159, 0.18);
-  background: color-mix(in srgb, var(--accent) 88%, white 12%);
+  border-color: color-mix(in oklch, var(--accent) 28%, transparent);
+  background: var(--accent);
 }
 
 .radar-field input,
@@ -1713,7 +1764,9 @@ input {
 :root[data-theme="dark"] .radar-field input,
 :root[data-theme="dark"] .radar-field select,
 :root[data-theme="dark"] .radar-url-row input {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-soft);
+  border-color: var(--border);
+  color: var(--text);
 }
 
 .radar-url-row {
@@ -1766,12 +1819,12 @@ input {
 
 :root[data-theme="dark"] .radar-source-card {
   background: var(--surface);
-  border-color: rgba(238, 225, 213, 0.1);
+  border-color: var(--border);
   box-shadow: none;
 }
 
 :root[data-theme="dark"] .radar-source-card--warning {
-  border-color: rgba(226, 159, 117, 0.2);
+  border-color: var(--warning-border);
 }
 
 .radar-source-card__top {
@@ -1865,21 +1918,21 @@ input {
 }
 
 :root[data-theme="dark"] .radar-diagnostic-status {
-  border-color: rgba(238, 225, 213, 0.1);
+  border-color: var(--border);
   background: var(--surface-raised);
   color: var(--muted-strong);
 }
 
 :root[data-theme="dark"] .radar-diagnostic-status--ok {
-  border-color: rgba(104, 168, 124, 0.24);
-  background: rgba(104, 168, 124, 0.12);
-  color: #b8e0c1;
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 :root[data-theme="dark"] .radar-diagnostic-status--warning {
-  border-color: rgba(226, 159, 117, 0.22);
-  background: rgba(226, 159, 117, 0.12);
-  color: #f0c3a8;
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+  color: var(--warning-text);
 }
 
 .radar-modal-backdrop {
@@ -1892,6 +1945,10 @@ input {
   background: rgba(31, 26, 22, 0.18);
   backdrop-filter: blur(8px);
   animation: radar-fade-in var(--motion-standard) var(--motion-ease-standard) both;
+}
+
+:root[data-theme="dark"] .radar-modal-backdrop {
+  background: oklch(12% 0.008 42 / 0.5);
 }
 
 .radar-modal-backdrop:has(.radar-modal--settings) {
@@ -1944,10 +2001,12 @@ input {
 :root[data-theme="dark"] .radar-modal,
 :root[data-theme="dark"] .radar-detail-dialog {
   background: var(--surface);
+  border-color: var(--border);
   box-shadow: none;
 }
 
 :root[data-theme="dark"] .radar-modal--settings {
+  --settings-modal-surface: color-mix(in oklch, var(--bg) 54%, var(--surface-soft) 46%);
   background: var(--settings-modal-surface);
 }
 
@@ -2021,8 +2080,8 @@ input {
 }
 
 :root[data-theme="dark"] .radar-filter-impact-banner {
-  border-color: rgba(238, 225, 213, 0.08);
-  background: var(--surface-soft);
+  border-color: var(--border);
+  background: var(--surface);
   box-shadow: none;
 }
 
@@ -2043,7 +2102,7 @@ input {
 }
 
 :root[data-theme="dark"] .radar-filter-group {
-  border-color: rgba(238, 225, 213, 0.08);
+  border-color: var(--border);
   background: var(--surface-soft);
 }
 
@@ -2069,7 +2128,7 @@ input {
 
 :root[data-theme="dark"] .radar-form-grid--filters .radar-filter-group,
 :root[data-theme="dark"] .radar-form-grid--urls .radar-filter-group {
-  border-color: rgba(238, 225, 213, 0.1);
+  border-color: var(--border);
   background: var(--surface);
   box-shadow: none;
 }
@@ -2119,7 +2178,7 @@ input {
 }
 
 :root[data-theme="dark"] .radar-filter-preferences__divider {
-  background: rgba(238, 225, 213, 0.18);
+  background: var(--border-strong);
 }
 
 .radar-token-groups-grid {
@@ -2309,30 +2368,30 @@ input {
 
 :root[data-theme="dark"] .radar-filter-token,
 :root[data-theme="dark"] .radar-token-empty {
-  border-color: rgba(238, 225, 213, 0.12);
+  border-color: var(--border);
   background: var(--surface);
 }
 
 :root[data-theme="dark"] .radar-filter-token__remove:hover {
-  background: rgba(238, 225, 213, 0.08);
+  background: var(--surface-hover);
 }
 
 :root[data-theme="dark"] .radar-token-add__field {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(238, 225, 213, 0.12);
+  background: var(--surface-soft);
+  border-color: var(--border);
 }
 
 :root[data-theme="dark"] .radar-filter-action,
 :root[data-theme="dark"] .radar-token-add__save {
   background: var(--surface);
-  border-color: rgba(238, 225, 213, 0.12);
+  border-color: var(--border);
   color: var(--muted-strong);
 }
 
 :root[data-theme="dark"] .radar-filter-action:hover,
 :root[data-theme="dark"] .radar-token-add__save:hover {
-  background: var(--surface-raised);
-  border-color: rgba(238, 225, 213, 0.18);
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
   color: var(--text);
 }
 
@@ -2348,7 +2407,7 @@ input {
 }
 
 :root[data-theme="dark"] .radar-filter-token-row {
-  border-color: rgba(238, 225, 213, 0.08);
+  border-color: var(--border);
   background: var(--surface);
 }
 
@@ -2371,6 +2430,10 @@ input {
   background: rgba(31, 26, 22, 0.18);
   backdrop-filter: blur(6px);
   animation: radar-fade-in var(--motion-fast) var(--motion-ease-standard) both;
+}
+
+:root[data-theme="dark"] .radar-detail-overlay {
+  background: oklch(12% 0.008 42 / 0.48);
 }
 
 .radar-detail-dialog {
@@ -2432,7 +2495,7 @@ input {
 
 :root[data-theme="dark"] .radar-attempt-row {
   background: var(--surface);
-  border-color: rgba(238, 225, 213, 0.08);
+  border-color: var(--border);
 }
 
 .radar-error-banner {
@@ -2440,6 +2503,12 @@ input {
   border: 1px solid rgba(176, 80, 80, 0.18);
   border-radius: 14px;
   background: rgba(255, 239, 239, 0.92);
+}
+
+:root[data-theme="dark"] .radar-error-banner {
+  border-color: oklch(72% 0.055 24 / 0.18);
+  background: oklch(68% 0.055 24 / 0.11);
+  color: oklch(82% 0.045 24);
 }
 
 @media (max-width: 900px) {
