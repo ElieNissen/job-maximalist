@@ -487,6 +487,10 @@ input {
   box-shadow: none;
 }
 
+:root[data-theme="dark"] .radar-chip--filter.is-active {
+  color: oklch(97.8% 0.002 38);
+}
+
 .radar-primary-action {
   min-width: 154px;
   justify-content: center;
