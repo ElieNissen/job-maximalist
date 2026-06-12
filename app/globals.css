@@ -174,6 +174,134 @@ input {
   z-index: 1;
 }
 
+.radar-boot-page,
+.radar-loading-page {
+  min-height: 100vh;
+  padding: clamp(30px, 6vw, 72px) clamp(18px, 4vw, 54px);
+  background:
+    radial-gradient(circle at 12% 10%, rgba(87, 51, 33, 0.09), transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-soft) 78%, white 22%) 0%, var(--bg) 64%);
+}
+
+.radar-loading-page {
+  display: grid;
+  place-items: center;
+}
+
+.radar-loading-card {
+  width: min(100%, 540px);
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  padding: clamp(38px, 5.4vw, 58px);
+  border: 1px solid rgba(74, 64, 57, 0.13);
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--surface) 90%, white 10%);
+  text-align: center;
+  box-shadow:
+    0 18px 48px rgba(43, 35, 30, 0.075),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  animation: radar-page-card-enter 460ms var(--motion-ease-emphasized) both;
+}
+
+.radar-loading-orbit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface-soft);
+}
+
+.radar-loading-orbit span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  opacity: 0.35;
+  transform: scale(0.76);
+  animation: radar-loading-dot 1200ms var(--motion-ease-emphasized) infinite;
+}
+
+.radar-loading-orbit span:nth-child(2) {
+  animation-delay: 160ms;
+}
+
+.radar-loading-orbit span:nth-child(3) {
+  animation-delay: 320ms;
+}
+
+.radar-loading-copy {
+  display: grid;
+  gap: 10px;
+  max-width: 44ch;
+}
+
+.radar-loading-copy h1 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: clamp(2rem, 5vw, 3.15rem);
+  font-weight: 720;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+}
+
+.radar-loading-copy p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.62;
+}
+
+.radar-loading-steps {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.radar-loading-steps span {
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--surface-soft) 78%, var(--surface) 22%);
+  color: var(--muted-strong);
+  font-size: 0.84rem;
+  font-weight: 620;
+  animation: radar-loading-step 1800ms var(--motion-ease-emphasized) infinite;
+}
+
+.radar-loading-steps span:nth-child(2) {
+  animation-delay: 260ms;
+}
+
+.radar-loading-steps span:nth-child(3) {
+  animation-delay: 520ms;
+}
+
+:root[data-theme="dark"] .radar-boot-page,
+:root[data-theme="dark"] .radar-loading-page {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(176, 112, 76, 0.14), transparent 28%),
+    linear-gradient(180deg, color-mix(in oklch, var(--bg) 58%, var(--surface-soft) 42%) 0%, var(--bg) 70%);
+}
+
+:root[data-theme="dark"] .radar-loading-card {
+  border-color: var(--border);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .radar-loading-orbit,
+:root[data-theme="dark"] .radar-loading-steps span {
+  border-color: var(--border);
+  background: var(--surface-muted);
+}
+
 .radar-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -658,6 +786,32 @@ input {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes radar-loading-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0) scale(0.76);
+  }
+
+  42% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1);
+  }
+}
+
+@keyframes radar-loading-step {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translateY(0);
+  }
+
+  44% {
+    opacity: 1;
+    transform: translateY(-2px);
   }
 }
 
@@ -3167,6 +3321,9 @@ input {
   .radar-modal,
   .radar-detail-overlay,
   .radar-detail-dialog,
+  .radar-loading-card,
+  .radar-loading-orbit span,
+  .radar-loading-steps span,
   .radar-main-panel,
   .radar-settings-panel,
   .radar-empty-state__bubble,
@@ -3192,6 +3349,9 @@ input {
   .radar-tab-button,
   .radar-tab-row__indicator,
   .radar-content-shell,
+  .radar-loading-card,
+  .radar-loading-orbit span,
+  .radar-loading-steps span,
   .radar-utility-button,
   .radar-primary-action,
   .radar-inline-button,

@@ -28,6 +28,7 @@ const TAB_ENTRANCE_DURATION_MS = 1240;
 type ThemeMode = "light" | "dark";
 type EntranceState = "preparing" | "entering" | "settled";
 type SourceTransitionDirection = "forward" | "backward";
+type TestOnboardingRequestState = "checking" | "requested" | "none";
 type ViewTransitionDocument = Document & {
   startViewTransition?: (updateCallback: () => void) => { finished: Promise<void> };
 };
@@ -86,6 +87,35 @@ function getSourceTransitionDirection(options: SourceFilterOption[], previousFil
   return nextIndex >= previousIndex ? "forward" : "backward";
 }
 
+function RadarBootScreen() {
+  return <section className="radar-boot-page" aria-hidden="true" />;
+}
+
+function RadarFirstRefreshScreen() {
+  return (
+    <section className="radar-loading-page" aria-busy="true" aria-live="polite">
+      <div className="radar-loading-card" role="status">
+        <div className="radar-loading-orbit" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+
+        <div className="radar-loading-copy">
+          <h1>Préparation des offres</h1>
+          <p>On récupère les résultats et on applique tes filtres. La liste s’affichera dès que la première sélection sera prête.</p>
+        </div>
+
+        <div className="radar-loading-steps" aria-hidden="true">
+          <span>Configuration</span>
+          <span>Sources</span>
+          <span>Tri local</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function UrlRadarTab() {
   const [config, setConfig] = useState<UrlRadarConfig>(EMPTY_CONFIG);
   const [jobsData, setJobsData] = useState<UrlRadarJobsResponse>(EMPTY_JOBS);
@@ -103,6 +133,8 @@ export default function UrlRadarTab() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [onboardingMode, setOnboardingMode] = useState<"wizard" | "setup">("wizard");
   const [onboardingDismissedThisSession, setOnboardingDismissedThisSession] = useState(false);
+  const [onboardingRefreshPending, setOnboardingRefreshPending] = useState(false);
+  const [testOnboardingRequest, setTestOnboardingRequest] = useState<TestOnboardingRequestState>("checking");
   const [testOnboardingReopenHandled, setTestOnboardingReopenHandled] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const lastNotifiedRunId = useRef<string | null>(null);
@@ -116,6 +148,20 @@ export default function UrlRadarTab() {
   const hasConfiguredSourceUrls = configuredSourceUrls.length > 0;
   const visibleSourceOptions = useMemo(() => buildSourceOptions(visibleClusters), [visibleClusters]);
   const excludedSourceOptions = useMemo(() => buildSourceOptions(excludedClusters, configuredSourceUrls), [configuredSourceUrls, excludedClusters]);
+  const shouldForceTestOnboarding =
+    hasLoadedOnce &&
+    !utilitySection &&
+    config.isOnboardingTestProfile === true &&
+    testOnboardingRequest === "requested" &&
+    !testOnboardingReopenHandled;
+  const shouldAutoOpenWizardOnboarding =
+    hasLoadedOnce &&
+    !utilitySection &&
+    !hasConfiguredSourceUrls &&
+    !config.onboardingCompletedAt &&
+    !config.onboardingDismissedAt &&
+    !onboardingDismissedThisSession;
+  const shouldShowWizardOnboarding = (onboardingOpen && onboardingMode === "wizard") || shouldForceTestOnboarding || shouldAutoOpenWizardOnboarding;
 
   const filteredVisibleClusters = useMemo(
     () => visibleClusters.filter((cluster) => sourceMatchesFilter(cluster, visibleSourceFilter)),
@@ -324,7 +370,13 @@ export default function UrlRadarTab() {
 
       setOnboardingDismissedThisSession(false);
       setOnboardingOpen(false);
-      await refreshNow();
+      setTestOnboardingReopenHandled(true);
+      setOnboardingRefreshPending(true);
+      try {
+        await refreshNow();
+      } finally {
+        setOnboardingRefreshPending(false);
+      }
       return true;
     },
     [refreshNow, saveConfig]
@@ -417,6 +469,11 @@ export default function UrlRadarTab() {
   }, [loadAll]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    setTestOnboardingRequest(new URLSearchParams(window.location.search).get("onboarding") === "1" ? "requested" : "none");
+  }, []);
+
+  useEffect(() => {
     const refreshStatus = window.setInterval(loadAll, 5 * 60 * 1000);
 
     return () => {
@@ -491,35 +548,33 @@ export default function UrlRadarTab() {
   useEffect(() => {
     if (!hasLoadedOnce || utilitySection) return;
 
-    const forceTestOnboarding =
-      typeof window !== "undefined" &&
-      config.isOnboardingTestProfile === true &&
-      new URLSearchParams(window.location.search).get("onboarding") === "1" &&
-      !testOnboardingReopenHandled;
-
-    if (forceTestOnboarding) {
+    if (shouldForceTestOnboarding) {
       setOnboardingMode("wizard");
       setOnboardingOpen(true);
       setTestOnboardingReopenHandled(true);
       return;
     }
 
-    if (!hasConfiguredSourceUrls && !config.onboardingCompletedAt && !config.onboardingDismissedAt && !onboardingDismissedThisSession) {
+    if (shouldAutoOpenWizardOnboarding) {
       setOnboardingMode("wizard");
       setOnboardingOpen(true);
     }
   }, [
-    config.isOnboardingTestProfile,
-    config.onboardingCompletedAt,
-    config.onboardingDismissedAt,
-    hasConfiguredSourceUrls,
     hasLoadedOnce,
-    onboardingDismissedThisSession,
-    testOnboardingReopenHandled,
+    shouldAutoOpenWizardOnboarding,
+    shouldForceTestOnboarding,
     utilitySection
   ]);
 
-  if (onboardingOpen && onboardingMode === "wizard") {
+  if (!hasLoadedOnce || testOnboardingRequest === "checking") {
+    return <RadarBootScreen />;
+  }
+
+  if (onboardingRefreshPending) {
+    return <RadarFirstRefreshScreen />;
+  }
+
+  if (shouldShowWizardOnboarding) {
     return <OnboardingModal config={config} mode={onboardingMode} saving={saving} onComplete={completeOnboarding} onDismiss={dismissOnboarding} />;
   }
 
