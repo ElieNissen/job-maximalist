@@ -1,4 +1,5 @@
 .next/
+.next-onboarding-test/
 node_modules/
 coverage/
 dist/
@@ -13,3 +14,4 @@ prisma/dev.db
 prisma/dev.db-journal
 data/*.json
 !data/.gitkeep
+.local-profiles/

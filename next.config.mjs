@@ -1,4 +1,5 @@
 const nextConfig = {
+  distDir: process.env.JOBMAX_NEXT_DIST_DIR?.trim() || ".next",
   output: "standalone",
   outputFileTracingIncludes: {
     "/*": [

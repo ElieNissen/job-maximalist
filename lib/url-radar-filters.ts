@@ -1,6 +1,6 @@
 import type { JobSearchFilters } from "@/lib/types";
 
-export type EditableContractType = "CDI" | "CDD";
+export type EditableContractType = "CDI" | "CDD" | "FREELANCE";
 
 export type UrlRadarPostedSinceChoice = {
   value: number | null;
@@ -8,34 +8,10 @@ export type UrlRadarPostedSinceChoice = {
 };
 
 export const URL_RADAR_DEFAULT_FILTERS: JobSearchFilters = {
-  keywordsInclude: [
-    "Product Designer",
-    "UX/UI Designer",
-    "UX Designer",
-    "Interaction Designer",
-    "UX Researcher",
-    "Ergonome IHM"
-  ],
-  keywordsExclude: [
-    "senior",
-    "lead",
-    "manager",
-    "engineer",
-    "brand",
-    "principal",
-    "staff",
-    "head",
-    "director",
-    "intern",
-    "internship",
-    "stage",
-    "stagiaire",
-    "alternance",
-    "apprentice",
-    "apprentissage"
-  ],
-  locations: ["Ile-de-France", "Paris"],
-  contractTypes: ["CDI", "CDD"],
+  keywordsInclude: [],
+  keywordsExclude: [],
+  locations: [],
+  contractTypes: ["CDI", "CDD", "FREELANCE"],
   // Preserved in config for backward compatibility, but URL Radar no longer exposes a source filter.
   sources: [
     "linkedin",
@@ -51,7 +27,11 @@ export const URL_RADAR_DEFAULT_FILTERS: JobSearchFilters = {
   postedSinceHours: undefined
 };
 
-export const URL_RADAR_CONTRACT_CHOICES: EditableContractType[] = ["CDI", "CDD"];
+export const URL_RADAR_CONTRACT_CHOICES: EditableContractType[] = ["CDI", "CDD", "FREELANCE"];
+
+export function getUrlRadarContractLabel(contractType: EditableContractType): string {
+  return contractType === "FREELANCE" ? "Freelance" : contractType;
+}
 
 export const URL_RADAR_POSTED_SINCE_CHOICES: UrlRadarPostedSinceChoice[] = [
   { value: null, label: "Aucune limite" },

@@ -29,60 +29,26 @@ const IDF_LOCATIONS = [
   "boulogne-billancourt"
 ];
 
-const STRICT_TITLE_PATTERNS = [
-  /\bproduct designer\b/,
-  /\bproduct design\b/,
-  /\bux\s*\/\s*ui\s+designer\b/,
-  /\bui\s*\/\s*ux\s+designer\b/,
-  /\bux\s+ui\s+designer\b/,
-  /\bux\s+designer\b/,
-  /\bui\s+designer\b/,
-  /\bdesigner\s+ux\b/,
-  /\bdesigner\s+ui\b/,
-  /\bdesigner\s+ux\s*\/\s*ui\b/,
-  /\bdesigner\s+ui\s*\/\s*ux\b/,
-  /\bdesigner\s+ux\s+ui\b/,
-  /\bdesigner\s+ui\s+ux\b/,
-  /\binteraction\s+designer\b/,
-  /\bdesigner\s+interaction\b/,
-  /\bergonome\s+ihm\b/,
-  /\bergonome\s+ux\b/,
-  /\bux\s+writer\b/,
-  /\bcontent\s+designer\b/,
-  /\bux\s+researcher\b/,
-  /\banalyste\s+ux\b/,
-  /\banalyste\s+ui\b/,
-  /\banalyste\s+ux\s*\/\s*ui\b/,
-  /\bix\s+designer\b/
-];
-
 const TITLE_TOKEN_ALIASES: Record<string, string> = {
-  designer: "design",
-  design: "design",
-  designing: "design",
+  developpeur: "developpeur",
+  developpeuse: "developpeur",
+  developer: "developpeur",
+  dev: "developpeur",
+  designer: "designer",
+  design: "designer",
+  designing: "designer",
+  product: "product",
+  produit: "product",
+  produits: "product",
+  manager: "manager",
+  management: "manager",
   analyste: "analyst",
   analyst: "analyst",
   analysts: "analyst",
-  researcher: "research",
-  research: "research",
-  researchers: "research",
-  consultant: "consultant",
-  consultante: "consultant",
-  consultants: "consultant",
-  consultantes: "consultant",
-  writer: "writer",
-  writers: "writer",
-  ergonome: "ergonome",
-  ergonomes: "ergonome",
-  product: "product",
-  produits: "product",
-  produit: "product",
-  interaction: "interaction",
-  interactions: "interaction",
-  ux: "ux",
-  ui: "ui",
-  ihm: "ihm",
-  ix: "ix"
+  data: "data",
+  marketing: "marketing",
+  customer: "customer",
+  success: "success"
 };
 
 const IGNORABLE_TOKENS = new Set(["h", "f", "fh", "hf", "mx", "m", "and", "et", "ou", "or", "de", "du", "des"]);
@@ -130,32 +96,13 @@ function matchesKeywordFlexibly(titleNormalized: string, keyword: string): boole
   return keywordTokens.every((token) => titleTokenSet.has(token));
 }
 
-function matchesDesignTitle(titleNormalized: string, filters: JobSearchFilters): string[] {
-  const matchesFromKeywords = filters.keywordsInclude.filter((keyword) =>
-    matchesKeywordFlexibly(titleNormalized, keyword)
-  );
-
-  if (matchesFromKeywords.length > 0) {
-    return matchesFromKeywords;
+function matchesIncludedKeywords(titleNormalized: string, filters: JobSearchFilters): string[] {
+  const includeKeywords = filters.keywordsInclude.map((keyword) => keyword.trim()).filter(Boolean);
+  if (includeKeywords.length === 0) {
+    return ["no_include_filter"];
   }
 
-  if (STRICT_TITLE_PATTERNS.some((pattern) => pattern.test(titleNormalized))) {
-    return ["strict_design_pattern"];
-  }
-
-  const compactTitle = titleNormalized.replace(/\s+/g, "");
-  const hasDesignWord =
-    /\b(designer|design|writer|researcher|ergonome|analyste)\b/.test(titleNormalized) ||
-    /(designer|design|writer|researcher|ergonome|analyste)/.test(compactTitle);
-  const hasUxFamily =
-    /\b(ux|ui|ihm|interaction|product)\b/.test(titleNormalized) ||
-    /(ux|ui|ihm|interaction|product)/.test(compactTitle);
-
-  if (hasDesignWord && hasUxFamily) {
-    return ["flex_design_pattern"];
-  }
-
-  return [];
+  return includeKeywords.filter((keyword) => matchesKeywordFlexibly(titleNormalized, keyword));
 }
 
 function findExcludedKeywords(titleLoose: string, excludedKeywords: readonly string[]): string[] {
@@ -175,6 +122,14 @@ function findExcludedKeywords(titleLoose: string, excludedKeywords: readonly str
   return matches;
 }
 
+function hasFreelanceSignal(job: NormalizedJob): boolean {
+  const searchableText = normalizeText(
+    [job.title, job.metadataText, job.experienceHint, job.url].filter(Boolean).join(" ")
+  );
+
+  return /\b(freelance|freelancer|independant|independent)\b/.test(searchableText);
+}
+
 export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): {
   match: boolean;
   matchedKeywords: string[];
@@ -187,7 +142,7 @@ export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): {
   const titleLoose = normalizeText(job.title);
   const location = normalizeLocation(job.location);
 
-  const matchedKeywords = matchesDesignTitle(titleNormalized, filters);
+  const matchedKeywords = matchesIncludedKeywords(titleNormalized, filters);
   if (matchedKeywords.length === 0) {
     return { match: false, matchedKeywords: [], excludedReason: "no_include_keyword_match", excludedKeywords: [] };
   }
@@ -197,12 +152,17 @@ export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): {
     return { match: false, matchedKeywords, excludedReason: "excluded_keyword", excludedKeywords };
   }
 
-  const hasLocationMatch = filters.locations.some((candidate) =>
-    location.includes(normalizeLocation(candidate))
-  );
-  const isLikelyIDF = IDF_LOCATIONS.some((idf) => location.includes(idf));
+  const locationFilters = filters.locations.map((candidate) => normalizeLocation(candidate)).filter(Boolean);
+  const hasLocationFilter = locationFilters.length > 0;
+  const hasLocationMatch = locationFilters.some((candidate) => {
+    if (location.includes(candidate)) return true;
+    if (candidate === "ile-de-france" || candidate === "ile de france") {
+      return IDF_LOCATIONS.some((idf) => location.includes(idf));
+    }
+    return false;
+  });
 
-  if (!isVieJob && !hasLocationMatch && !isLikelyIDF) {
+  if (!isVieJob && hasLocationFilter && !hasLocationMatch) {
     return { match: false, matchedKeywords, excludedReason: "location_mismatch", excludedKeywords: [] };
   }
 
@@ -215,7 +175,11 @@ export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): {
   }
 
   // Contract is often missing in feeds. Keep CDI/CDD strict when present, tolerate unknown.
-  if (job.contractType !== "OTHER" && !filters.contractTypes.includes(job.contractType as "CDI" | "CDD")) {
+  if (job.contractType !== "OTHER" && !filters.contractTypes.includes(job.contractType)) {
+    return { match: false, matchedKeywords, excludedReason: "contract_type_mismatch", excludedKeywords: [] };
+  }
+
+  if (hasFreelanceSignal(job) && !filters.contractTypes.includes("FREELANCE")) {
     return { match: false, matchedKeywords, excludedReason: "contract_type_mismatch", excludedKeywords: [] };
   }
 

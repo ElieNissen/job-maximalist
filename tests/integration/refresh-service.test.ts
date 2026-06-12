@@ -24,7 +24,9 @@ describe("refreshUrlRadar", () => {
         intervalMinutes: 60,
         urls: [],
         filters: cloneUrlRadarFilters(URL_RADAR_DEFAULT_FILTERS),
-        removedUrlsHistory: []
+        removedUrlsHistory: [],
+        onboardingCompletedAt: null,
+        onboardingDismissedAt: null
       };
 
       const result = await refreshUrlRadar(config);

@@ -11,6 +11,9 @@ export type UrlRadarConfig = {
   urls: string[];
   filters: JobSearchFilters;
   removedUrlsHistory: RemovedUrlHistoryEntry[];
+  onboardingCompletedAt: string | null;
+  onboardingDismissedAt: string | null;
+  isOnboardingTestProfile?: boolean;
 };
 
 export type UrlRadarJob = {

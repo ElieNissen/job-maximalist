@@ -36,11 +36,10 @@
     "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next-onboarding-test/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
   ]
 }
-
-

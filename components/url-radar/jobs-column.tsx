@@ -11,6 +11,8 @@ type JobsColumnProps = {
   excludedClusters: JobCluster[];
   lastRefreshAt: string | null;
   motionKey: string;
+  showSetupPrompt?: boolean;
+  onOpenOnboarding?: () => void;
   onOpenCluster: (cluster: JobCluster) => void;
   onToggleSaved: (cluster: JobCluster) => void;
 };
@@ -53,10 +55,14 @@ function AnimatedWords({ text }: { text: string }) {
 
 function EmptyState({
   motionKey,
+  onOpenOnboarding,
+  showSetupPrompt = false,
   stamp,
   variant
 }: {
   motionKey: string;
+  onOpenOnboarding?: () => void;
+  showSetupPrompt?: boolean;
   stamp?: string | null;
   variant: "no-new" | "no-visible" | "no-excluded";
 }) {
@@ -82,6 +88,14 @@ function EmptyState({
           <RefreshMeta stamp={stamp} />
         </span>
       </div>
+      {showSetupPrompt && onOpenOnboarding ? (
+        <div className="radar-empty-state__setup">
+          <p>Ajoute tes URLs de recherche pour commencer à détecter des offres.</p>
+          <button type="button" className="radar-primary-action radar-primary-action--small" onClick={onOpenOnboarding}>
+            Configurer ma veille
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -125,6 +139,8 @@ export function JobsColumn({
   excludedClusters,
   lastRefreshAt,
   motionKey,
+  showSetupPrompt = false,
+  onOpenOnboarding,
   onOpenCluster,
   onToggleSaved
 }: JobsColumnProps) {
@@ -150,7 +166,7 @@ export function JobsColumn({
   }
 
   if (newClusters.length === 0 && olderClusters.length === 0) {
-    return <EmptyState motionKey={motionKey} stamp={refreshStamp} variant="no-visible" />;
+    return <EmptyState motionKey={motionKey} onOpenOnboarding={onOpenOnboarding} showSetupPrompt={showSetupPrompt} stamp={refreshStamp} variant="no-visible" />;
   }
 
   return (

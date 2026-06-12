@@ -12,6 +12,7 @@ import { SlidingTabRow, type SlidingTabOption } from "@/components/url-radar/sec
 import { getHostFromUrl, getUrlSourceMeta } from "@/lib/url-radar-sources";
 import {
   cloneUrlRadarFilters,
+  getUrlRadarContractLabel,
   sanitizeUrlRadarFilters,
   URL_RADAR_CONTRACT_CHOICES,
   URL_RADAR_DEFAULT_FILTERS,
@@ -690,7 +691,7 @@ function FiltersPanel({
           {URL_RADAR_CONTRACT_CHOICES.map((contractType) => (
             <ToggleRow
               key={contractType}
-              label={contractType}
+              label={getUrlRadarContractLabel(contractType)}
               checked={filters.contractTypes.includes(contractType)}
               compact
               onChange={(checked) =>

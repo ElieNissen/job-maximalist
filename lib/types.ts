@@ -14,7 +14,7 @@ export interface JobSearchFilters {
   keywordsInclude: string[];
   keywordsExclude: string[];
   locations: string[];
-  contractTypes: Array<"CDI" | "CDD">;
+  contractTypes: Array<"CDI" | "CDD" | "FREELANCE">;
   sources: JobSource[];
   postedSinceHours?: number;
 }

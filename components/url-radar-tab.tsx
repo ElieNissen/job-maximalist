@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { JobsColumn } from "@/components/url-radar/jobs-column";
+import { OnboardingModal } from "@/components/url-radar/onboarding-modal";
 import { SecondaryPanel } from "@/components/url-radar/secondary-panel";
 import { MainTabSwitch, SectionTabs } from "@/components/url-radar/section-tabs";
 import { SourceFilterBar } from "@/components/url-radar/source-filter-bar";
@@ -36,7 +37,9 @@ const EMPTY_CONFIG: UrlRadarConfig = {
   intervalMinutes: 60,
   urls: [""],
   filters: cloneUrlRadarFilters(URL_RADAR_DEFAULT_FILTERS),
-  removedUrlsHistory: []
+  removedUrlsHistory: [],
+  onboardingCompletedAt: null,
+  onboardingDismissedAt: null
 };
 
 const EMPTY_JOBS: UrlRadarJobsResponse = {
@@ -64,7 +67,10 @@ function normalizeConfig(config: UrlRadarConfig): UrlRadarConfig {
     ...config,
     urls: config.urls.length > 0 ? config.urls : [""],
     filters: cloneUrlRadarFilters(config.filters ?? URL_RADAR_DEFAULT_FILTERS),
-    removedUrlsHistory: Array.isArray(config.removedUrlsHistory) ? config.removedUrlsHistory : []
+    removedUrlsHistory: Array.isArray(config.removedUrlsHistory) ? config.removedUrlsHistory : [],
+    onboardingCompletedAt: config.onboardingCompletedAt ?? null,
+    onboardingDismissedAt: config.onboardingDismissedAt ?? null,
+    isOnboardingTestProfile: config.isOnboardingTestProfile
   };
 }
 
@@ -94,6 +100,10 @@ export default function UrlRadarTab() {
   const [visibleSourceFilter, setVisibleSourceFilter] = useState<string | null>(null);
   const [excludedSourceFilter, setExcludedSourceFilter] = useState<string | null>(null);
   const [utilitySection, setUtilitySection] = useState<UtilitySection | null>(null);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [onboardingMode, setOnboardingMode] = useState<"wizard" | "setup">("wizard");
+  const [onboardingDismissedThisSession, setOnboardingDismissedThisSession] = useState(false);
+  const [testOnboardingReopenHandled, setTestOnboardingReopenHandled] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const lastNotifiedRunId = useRef<string | null>(null);
   const tabEntranceTimeoutRef = useRef<number | null>(null);
@@ -103,6 +113,7 @@ export default function UrlRadarTab() {
   const visibleClusters = useMemo(() => clusterJobs(visibleItems), [visibleItems]);
   const excludedClusters = useMemo(() => clusterJobs(excludedItems), [excludedItems]);
   const configuredSourceUrls = useMemo(() => config.urls.map((url) => url.trim()).filter(Boolean), [config.urls]);
+  const hasConfiguredSourceUrls = configuredSourceUrls.length > 0;
   const visibleSourceOptions = useMemo(() => buildSourceOptions(visibleClusters), [visibleClusters]);
   const excludedSourceOptions = useMemo(() => buildSourceOptions(excludedClusters, configuredSourceUrls), [configuredSourceUrls, excludedClusters]);
 
@@ -290,6 +301,35 @@ export default function UrlRadarTab() {
     setUtilitySection((prev) => (prev === section ? null : section));
   }, []);
 
+  const openOnboarding = useCallback(() => {
+    setUtilitySection(null);
+    setOnboardingDismissedThisSession(false);
+    setOnboardingMode("setup");
+    setOnboardingOpen(true);
+  }, []);
+
+  const dismissOnboarding = useCallback(() => {
+    setOnboardingDismissedThisSession(true);
+    setOnboardingOpen(false);
+    void saveConfig({
+      ...config,
+      onboardingDismissedAt: new Date().toISOString()
+    });
+  }, [config, saveConfig]);
+
+  const completeOnboarding = useCallback(
+    async (nextConfig: UrlRadarConfig) => {
+      const saved = await saveConfig(nextConfig);
+      if (!saved) return false;
+
+      setOnboardingDismissedThisSession(false);
+      setOnboardingOpen(false);
+      await refreshNow();
+      return true;
+    },
+    [refreshNow, saveConfig]
+  );
+
   const updateMainTab = useCallback(
     (nextTab: MainTab) => {
       if (nextTab === mainTab) return;
@@ -439,14 +479,49 @@ export default function UrlRadarTab() {
     window.localStorage.setItem("url-radar-theme", themeMode);
 
     const previousOverflow = document.body.style.overflow;
-    if (utilitySection) {
+    if (utilitySection || (onboardingOpen && onboardingMode !== "wizard")) {
       document.body.style.overflow = "hidden";
     }
 
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [utilitySection, themeMode]);
+  }, [onboardingMode, onboardingOpen, utilitySection, themeMode]);
+
+  useEffect(() => {
+    if (!hasLoadedOnce || utilitySection) return;
+
+    const forceTestOnboarding =
+      typeof window !== "undefined" &&
+      config.isOnboardingTestProfile === true &&
+      new URLSearchParams(window.location.search).get("onboarding") === "1" &&
+      !testOnboardingReopenHandled;
+
+    if (forceTestOnboarding) {
+      setOnboardingMode("wizard");
+      setOnboardingOpen(true);
+      setTestOnboardingReopenHandled(true);
+      return;
+    }
+
+    if (!hasConfiguredSourceUrls && !config.onboardingCompletedAt && !config.onboardingDismissedAt && !onboardingDismissedThisSession) {
+      setOnboardingMode("wizard");
+      setOnboardingOpen(true);
+    }
+  }, [
+    config.isOnboardingTestProfile,
+    config.onboardingCompletedAt,
+    config.onboardingDismissedAt,
+    hasConfiguredSourceUrls,
+    hasLoadedOnce,
+    onboardingDismissedThisSession,
+    testOnboardingReopenHandled,
+    utilitySection
+  ]);
+
+  if (onboardingOpen && onboardingMode === "wizard") {
+    return <OnboardingModal config={config} mode={onboardingMode} saving={saving} onComplete={completeOnboarding} onDismiss={dismissOnboarding} />;
+  }
 
   return (
     <div className="radar-shell" data-ui-variant="editorial-board">
@@ -473,6 +548,8 @@ export default function UrlRadarTab() {
         onSaveConfig={saveConfig}
       />
 
+      {onboardingOpen ? <OnboardingModal config={config} mode={onboardingMode} saving={saving} onComplete={completeOnboarding} onDismiss={dismissOnboarding} /> : null}
+
       <div className={["radar-content-shell", hasLoadedOnce ? "is-ready" : "is-preparing", entranceState === "entering" ? "is-entering" : "", entranceState === "settled" ? "has-entered" : "", tabEntranceActive ? "is-tab-switching" : ""].filter(Boolean).join(" ")}>
         <div className="radar-primary-filters">
           <MainTabSwitch currentTab={mainTab} onChange={updateMainTab} />
@@ -496,6 +573,8 @@ export default function UrlRadarTab() {
               excludedClusters={filteredExcludedClusters}
               lastRefreshAt={jobsData.lastRefreshAt}
               motionKey={`${mainTab}-${mainTab === "visible" ? (visibleSourceFilter ?? "all") : (excludedSourceFilter ?? "all")}`}
+              showSetupPrompt={!hasConfiguredSourceUrls && !onboardingOpen}
+              onOpenOnboarding={openOnboarding}
               onOpenCluster={markClusterOpened}
               onToggleSaved={toggleSaved}
             />

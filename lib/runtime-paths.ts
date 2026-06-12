@@ -19,6 +19,14 @@ export function isPackagedRuntime(): boolean {
   return process.env.JOBMAX_RUNTIME_MODE === "packaged" || Boolean(process.env.JOBMAX_APP_DATA_DIR?.trim());
 }
 
+export function isOnboardingTestProfile(): boolean {
+  const explicitDirectory = process.env.JOBMAX_APP_DATA_DIR?.trim();
+  if (!explicitDirectory) return false;
+
+  const normalized = path.resolve(explicitDirectory).replace(/\\/g, "/").toLowerCase();
+  return normalized.endsWith("/.local-profiles/onboarding-test") || normalized.includes("/.local-profiles/onboarding-test/");
+}
+
 export function getAppDataRootDirectory(): string {
   const explicitDirectory = process.env.JOBMAX_APP_DATA_DIR?.trim();
   if (explicitDirectory) {

@@ -16,7 +16,9 @@ vi.mock("@/lib/url-radar-config", () => ({
       contractTypes: ["CDI", "CDD"],
       sources: []
     },
-    removedUrlsHistory: []
+    removedUrlsHistory: [],
+    onboardingCompletedAt: null,
+    onboardingDismissedAt: null
   })
 }));
 

@@ -16,6 +16,8 @@ export interface UrlRadarConfig {
   urls: string[];
   filters: ReturnType<typeof cloneUrlRadarFilters>;
   removedUrlsHistory: Array<{ url: string; removedAt: string }>;
+  onboardingCompletedAt: string | null;
+  onboardingDismissedAt: string | null;
 }
 
 const FILE_PATH = getRuntimeConfigFilePath();
@@ -30,7 +32,9 @@ const DEFAULT_CONFIG: UrlRadarConfig = {
   intervalMinutes: 60,
   urls: [...URL_RADAR_DEFAULT_URLS],
   filters: cloneUrlRadarFilters(URL_RADAR_DEFAULT_FILTERS),
-  removedUrlsHistory: []
+  removedUrlsHistory: [],
+  onboardingCompletedAt: null,
+  onboardingDismissedAt: null
 };
 
 function normalizeUrlKey(url: string): string {
@@ -79,8 +83,17 @@ function sanitizeConfig(input: unknown): UrlRadarConfig {
         : DEFAULT_CONFIG.intervalMinutes,
     urls: sanitizeUrls(raw.urls),
     filters: sanitizeUrlRadarFilters(raw.filters),
-    removedUrlsHistory: sanitizeRemovedUrlsHistory(raw.removedUrlsHistory)
+    removedUrlsHistory: sanitizeRemovedUrlsHistory(raw.removedUrlsHistory),
+    onboardingCompletedAt: sanitizeOptionalIsoDate(raw.onboardingCompletedAt),
+    onboardingDismissedAt: sanitizeOptionalIsoDate(raw.onboardingDismissedAt)
   };
+}
+
+function sanitizeOptionalIsoDate(input: unknown): string | null {
+  if (input === null || input === undefined || input === "") return null;
+  const timestamp = new Date(String(input)).getTime();
+  if (!Number.isFinite(timestamp)) return null;
+  return new Date(timestamp).toISOString();
 }
 
 function sanitizeRemovedUrlsHistory(input: unknown): Array<{ url: string; removedAt: string }> {
@@ -149,7 +162,7 @@ export async function getUrlRadarConfig(): Promise<UrlRadarConfig> {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     const cleaned = sanitizeConfig(parsed);
 
-    if (!("filters" in parsed) || !("removedUrlsHistory" in parsed)) {
+    if (!("filters" in parsed) || !("removedUrlsHistory" in parsed) || !("onboardingCompletedAt" in parsed) || !("onboardingDismissedAt" in parsed)) {
       await fs.writeFile(FILE_PATH, JSON.stringify(cleaned, null, 2), "utf8");
     }
 
