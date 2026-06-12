@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
@@ -31,7 +31,6 @@ type OnboardingModalProps = {
 
 type TokenEditorProps = {
   addLabel: string;
-  emptyLabel: string;
   inputLabel: string;
   items: string[];
   placeholder: string;
@@ -46,31 +45,24 @@ const LOCATION_SUGGESTIONS = ["Paris", "Lyon", "Remote", "France", "Europe"];
 
 const JOB_SITE_SUGGESTIONS = [
   { label: "LinkedIn", url: "https://www.linkedin.com/jobs/" },
-  { label: "Welcome to the Jungle", url: "https://www.welcometothejungle.com/fr/jobs" },
   { label: "APEC", url: "https://www.apec.fr/candidat/recherche-emploi.html/emploi" },
   { label: "HelloWork", url: "https://www.hellowork.com/fr-fr/emploi/recherche.html" },
   { label: "Indeed", url: "https://fr.indeed.com/" },
   { label: "Free-Work", url: "https://www.free-work.com/fr/tech-it/jobs" }
 ];
 
-const WIZARD_STEPS: ReadonlyArray<{ id: OnboardingStepId; label: string; title: string; description: string }> = [
+const WIZARD_STEPS: ReadonlyArray<{ id: OnboardingStepId; label: string }> = [
   {
     id: "urls",
-    label: "URLs",
-    title: "Sources à suivre",
-    description: "Colle les pages de résultats que JobMAXIMALIST devra relire à ta place."
+    label: "Sources à suivre"
   },
   {
     id: "keywords",
-    label: "Mots-clés",
-    title: "Mots à garder ou couper",
-    description: "Précise ce que tu recherches, puis écarte les termes qui créent du bruit."
+    label: "Mots-clés"
   },
   {
     id: "preferences",
-    label: "Préférences",
-    title: "Zones et contrats",
-    description: "Limite les résultats aux localisations et types d’offres qui t’intéressent."
+    label: "Autres paramètres"
   }
 ];
 
@@ -107,7 +99,7 @@ function isValidUrl(value: string): boolean {
   return /^https?:\/\//i.test(value.trim());
 }
 
-function OnboardingTokenEditor({ addLabel, emptyLabel, inputLabel, items, placeholder, suggestions, onAdd, onRemove }: TokenEditorProps) {
+function OnboardingTokenEditor({ addLabel, inputLabel, items, placeholder, suggestions, onAdd, onRemove }: TokenEditorProps) {
   const [inputValue, setInputValue] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -169,20 +161,18 @@ function OnboardingTokenEditor({ addLabel, emptyLabel, inputLabel, items, placeh
 
   return (
     <div className="radar-onboarding-token-block">
-      <div className="radar-filter-token-cloud" aria-label={inputLabel}>
-        {items.length > 0 ? (
-          items.map((item) => (
+      {items.length > 0 ? (
+        <div className="radar-filter-token-cloud radar-onboarding-token-cloud has-items" aria-label={inputLabel}>
+          {items.map((item) => (
             <span key={item} className={`radar-filter-token${normalizeKey(item) === newTokenKey ? " is-new" : ""}`}>
               <span>{item}</span>
               <button type="button" className="radar-filter-token__remove" onClick={() => onRemove(item)} aria-label={`Retirer ${item}`}>
                 <HugeiconsIcon icon={Cancel01Icon} size={13} strokeWidth={2.4} aria-hidden="true" />
               </button>
             </span>
-          ))
-        ) : (
-          <span className="radar-token-empty">{emptyLabel}</span>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : null}
 
       {isAdding ? (
         <form
@@ -240,20 +230,10 @@ function OnboardingTokenEditor({ addLabel, emptyLabel, inputLabel, items, placeh
   );
 }
 
-function OnboardingLogo() {
-  return (
-    <div className="radar-onboarding-logo" aria-label="JobMAXIMALIST">
-      <img src="/job-maximalist-logo.svg" alt="JobMAXIMALIST" className="radar-onboarding-logo__asset radar-onboarding-logo__asset--light" />
-      <img src="/job-maximalist-logo-dark.svg" alt="JobMAXIMALIST" className="radar-onboarding-logo__asset radar-onboarding-logo__asset--dark" />
-    </div>
-  );
-}
-
 export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }: OnboardingModalProps) {
   const [draftConfig, setDraftConfig] = useState<UrlRadarConfig>(() => normalizeDraftConfig(config));
   const [stepIndex, setStepIndex] = useState(0);
   const [stepDirection, setStepDirection] = useState<StepDirection>("forward");
-  const [urlContinueAttempted, setUrlContinueAttempted] = useState(false);
 
   useEffect(() => {
     setDraftConfig(normalizeDraftConfig(config));
@@ -267,9 +247,9 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
   const activeStep = WIZARD_STEPS[stepIndex] ?? WIZARD_STEPS[0];
   const isWizard = mode === "wizard";
   const isLastStep = stepIndex === WIZARD_STEPS.length - 1;
+  const canContinueFromCurrentStep = activeStep.id !== "urls" || (hasValidUrl && !hasInvalidUrl && !saving);
 
   const updateUrlAt = (index: number, value: string) => {
-    if (urlContinueAttempted) setUrlContinueAttempted(false);
     setDraftConfig((prev) => ({
       ...prev,
       urls: prev.urls.map((url, currentIndex) => (currentIndex === index ? value : url))
@@ -301,24 +281,19 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
 
   const goToStep = (nextIndex: number) => {
     if (nextIndex === stepIndex || nextIndex < 0 || nextIndex >= WIZARD_STEPS.length) return;
+    if (nextIndex > 0 && (!hasValidUrl || hasInvalidUrl)) return;
     setStepDirection(nextIndex > stepIndex ? "forward" : "backward");
     setStepIndex(nextIndex);
   };
 
   const continueFromCurrentStep = () => {
-    if (activeStep.id === "urls" && (!hasValidUrl || hasInvalidUrl)) {
-      setUrlContinueAttempted(true);
-      return;
-    }
+    if (!canContinueFromCurrentStep) return;
 
     goToStep(stepIndex + 1);
   };
 
   const completeOnboarding = async () => {
-    if (!canComplete) {
-      setUrlContinueAttempted(true);
-      return;
-    }
+    if (!canComplete) return;
 
     await onComplete({
       ...draftConfig,
@@ -331,8 +306,8 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
   const urlsSection = (
     <section className="radar-onboarding-section radar-onboarding-section--wide">
       <div className="radar-onboarding-section__header">
-        <strong>URLs de recherche</strong>
-        <span>Copie l’adresse après avoir lancé une recherche sur un site d’emploi. Le radar suivra exactement cette page.</span>
+        <strong>Pages à surveiller</strong>
+        <span>Fais une recherche sur un de ces sites, puis copie-colle ici le lien de la page de résultats.</span>
       </div>
 
       <div className="radar-url-list radar-onboarding-url-list">
@@ -352,10 +327,9 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
       </button>
 
       {hasInvalidUrl ? <p className="radar-onboarding-error">Chaque URL remplie doit commencer par http:// ou https://.</p> : null}
-      {urlContinueAttempted && !hasValidUrl ? <p className="radar-onboarding-error">Ajoute au moins une URL de résultats pour continuer.</p> : null}
 
       <div className="radar-onboarding-suggestion-block">
-        <span className="radar-onboarding-helper-label">Ouvrir un site pour créer une recherche</span>
+        <span className="radar-onboarding-helper-label">Suggestions</span>
         <div className="radar-onboarding-site-grid" aria-label="Sites d’emploi utiles">
           {JOB_SITE_SUGGESTIONS.map((site) => (
             <a key={site.url} className="radar-onboarding-site-link" href={site.url} target="_blank" rel="noreferrer">
@@ -373,11 +347,9 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
       <section className="radar-onboarding-section">
         <div className="radar-onboarding-section__header">
           <strong>Mots recherchés</strong>
-          <span>Optionnel. Si tu laisses vide, toutes les offres détectées dans tes URLs restent candidates.</span>
         </div>
         <OnboardingTokenEditor
           addLabel="Ajouter un mot recherché"
-          emptyLabel="Aucun mot recherché"
           inputLabel="mots recherchés"
           items={draftConfig.filters.keywordsInclude}
           placeholder="Ex. product manager"
@@ -390,11 +362,9 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
       <section className="radar-onboarding-section">
         <div className="radar-onboarding-section__header">
           <strong>Mots exclus</strong>
-          <span>Optionnel. Les offres contenant ces termes seront rangées dans les exclues.</span>
         </div>
         <OnboardingTokenEditor
           addLabel="Ajouter un mot exclu"
-          emptyLabel="Aucun mot exclu"
           inputLabel="mots exclus"
           items={draftConfig.filters.keywordsExclude}
           placeholder="Ex. stage"
@@ -411,11 +381,9 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
       <section className="radar-onboarding-section">
         <div className="radar-onboarding-section__header">
           <strong>Localisations</strong>
-          <span>Optionnel. Ajoute une ville, une zone ou “Remote” si tu veux limiter les résultats.</span>
         </div>
         <OnboardingTokenEditor
           addLabel="Ajouter une localisation"
-          emptyLabel="Aucune localisation"
           inputLabel="localisations"
           items={draftConfig.filters.locations}
           placeholder="Ex. Paris"
@@ -428,7 +396,6 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
       <section className="radar-onboarding-section">
         <div className="radar-onboarding-section__header">
           <strong>Types d’offres</strong>
-          <span>Tu pourras modifier ce choix dans les filtres avancés.</span>
         </div>
         <div className="radar-filter-preferences__row">
           {URL_RADAR_CONTRACT_CHOICES.map((contractType) => {
@@ -457,59 +424,58 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
     return (
       <main className="radar-onboarding-page" aria-label="Onboarding JobMAXIMALIST">
         <div className="radar-onboarding-page__chrome">
-          <OnboardingLogo />
+          <nav className="radar-onboarding-stepper" aria-label="Étapes de configuration">
+            {WIZARD_STEPS.map((step, index) => (
+              <Fragment key={step.id}>
+                <button
+                  type="button"
+                  className={`radar-onboarding-step${index === stepIndex ? " is-active" : ""}${index < stepIndex ? " is-complete" : ""}`}
+                  disabled={index > 0 && (!hasValidUrl || hasInvalidUrl)}
+                  onClick={() => goToStep(index)}
+                >
+                  <span>{index + 1}</span>
+                  <strong>{step.label}</strong>
+                </button>
+                {index < WIZARD_STEPS.length - 1 ? <span className="radar-onboarding-step-connector" aria-hidden="true" /> : null}
+              </Fragment>
+            ))}
+          </nav>
         </div>
 
-        <nav className="radar-onboarding-stepper" aria-label="Étapes de configuration">
-          {WIZARD_STEPS.map((step, index) => (
-            <button
-              key={step.id}
-              type="button"
-              className={`radar-onboarding-step${index === stepIndex ? " is-active" : ""}${index < stepIndex ? " is-complete" : ""}`}
-              onClick={() => goToStep(index)}
-            >
-              <span>{index + 1}</span>
-              {step.label}
-            </button>
-          ))}
-        </nav>
-
         <section className="radar-onboarding-wizard">
-          <aside className="radar-onboarding-progress" aria-label="Progression de l’onboarding">
-            <div>
-              <span className="radar-onboarding-eyebrow">Étape {stepIndex + 1} sur {WIZARD_STEPS.length}</span>
-              <h1>{activeStep.title}</h1>
-              <p>{activeStep.description}</p>
-            </div>
-          </aside>
+          <header className="radar-onboarding-title">
+            <h1>{activeStep.label}</h1>
+            <button type="button" className="radar-inline-button radar-onboarding-skip" onClick={onDismiss}>
+              Passer l’onboarding
+            </button>
+          </header>
 
-          <div className="radar-onboarding-stage">
-            <div key={activeStep.id} className={`radar-onboarding-step-panel is-${stepDirection}`}>
-              {stepContent}
-            </div>
+          <div key={activeStep.id} className={`radar-onboarding-step-panel is-${stepDirection}`}>
+            {stepContent}
+          </div>
 
-            <div className="radar-onboarding-footer">
-              <button type="button" className="radar-inline-button" disabled={stepIndex === 0} onClick={() => goToStep(stepIndex - 1)}>
+          <div className={`radar-onboarding-footer${stepIndex === 0 ? " is-first" : ""}`}>
+            {stepIndex > 0 ? (
+              <button type="button" className="radar-inline-button" onClick={() => goToStep(stepIndex - 1)}>
                 <HugeiconsIcon icon={ArrowLeft02Icon} size={16} strokeWidth={2.2} aria-hidden="true" />
                 Retour
               </button>
+            ) : (
+              <span className="radar-onboarding-footer__spacer" aria-hidden="true" />
+            )}
 
-              <div className="radar-onboarding-footer__primary">
-                <button type="button" className="radar-inline-button" onClick={onDismiss}>
-                  Configurer plus tard
+            <div className="radar-onboarding-footer__next">
+              {isLastStep ? (
+                <button type="button" className="radar-primary-action radar-primary-action--small" disabled={saving} onClick={completeOnboarding}>
+                  <HugeiconsIcon icon={Tick02Icon} size={16} strokeWidth={2.4} aria-hidden="true" />
+                  {saving ? "Enregistrement..." : "Enregistrer et lancer la recherche"}
                 </button>
-                {isLastStep ? (
-                  <button type="button" className="radar-primary-action radar-primary-action--small" disabled={saving} onClick={completeOnboarding}>
-                    <HugeiconsIcon icon={Tick02Icon} size={16} strokeWidth={2.4} aria-hidden="true" />
-                    {saving ? "Enregistrement..." : "Enregistrer et lancer la recherche"}
-                  </button>
-                ) : (
-                  <button type="button" className="radar-primary-action radar-primary-action--small" onClick={continueFromCurrentStep}>
-                    Continuer
-                    <HugeiconsIcon icon={ArrowRight02Icon} size={16} strokeWidth={2.2} aria-hidden="true" />
-                  </button>
-                )}
-              </div>
+              ) : (
+                <button type="button" className="radar-primary-action radar-primary-action--small" disabled={!canContinueFromCurrentStep} onClick={continueFromCurrentStep}>
+                  Continuer
+                  <HugeiconsIcon icon={ArrowRight02Icon} size={16} strokeWidth={2.2} aria-hidden="true" />
+                </button>
+              )}
             </div>
           </div>
         </section>
@@ -533,7 +499,7 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
         </div>
 
         <div className="radar-onboarding-intro">
-          <p>Ajoute tes URLs, puis affine les filtres. Rien n’est imposé par défaut, le radar suit uniquement ce que tu configures.</p>
+          <p>Ajoute tes URLs, puis ajuste les mots-clés, les localisations et les contrats.</p>
         </div>
 
         <div className="radar-onboarding-setup-grid">
