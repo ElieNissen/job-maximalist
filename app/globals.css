@@ -2847,7 +2847,16 @@ input {
 
 .radar-filter-reset-row {
   display: flex;
+  align-items: flex-start;
   justify-content: flex-start;
+}
+
+.radar-modal--settings .radar-inline-button--filters-reset {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
 }
 
 .radar-filter-preferences__row {
