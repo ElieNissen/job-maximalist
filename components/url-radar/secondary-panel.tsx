@@ -36,7 +36,7 @@ type SecondaryPanelProps = {
   jobs: UrlRadarJob[];
   status: UrlRadarStatusResponse;
   saving: boolean;
-  onSaveConfig: (config: UrlRadarConfig) => Promise<boolean>;
+  onSaveConfig: (config: UrlRadarConfig, options?: { refreshAfterSave?: boolean }) => Promise<boolean>;
 };
 
 type DiagnosticState = {
@@ -939,7 +939,7 @@ export function SecondaryPanel({ openSection, onClose, config, jobs, status, sav
             className="radar-primary-action radar-primary-action--small"
             disabled={!canSave}
             onClick={async () => {
-              const saved = await onSaveConfig(draftConfig);
+              const saved = await onSaveConfig(draftConfig, { refreshAfterSave: true });
               if (saved) onClose();
             }}
           >

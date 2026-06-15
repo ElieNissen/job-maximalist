@@ -272,7 +272,7 @@ export default function UrlRadarTab() {
   }, [loadAll]);
 
   const saveConfig = useCallback(
-    async (nextConfig: UrlRadarConfig) => {
+    async (nextConfig: UrlRadarConfig, options: { refreshAfterSave?: boolean } = {}) => {
       try {
         setSaving(true);
         setError(null);
@@ -285,7 +285,13 @@ export default function UrlRadarTab() {
         if (!response.ok) throw new Error("Save failed");
         const savedConfig = (await response.json()) as UrlRadarConfig;
         setConfig(normalizeConfig(savedConfig));
-        await loadAll();
+
+        if (options.refreshAfterSave) {
+          void refreshNow();
+        } else {
+          await loadAll();
+        }
+
         return true;
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "Save failed");
@@ -294,7 +300,7 @@ export default function UrlRadarTab() {
         setSaving(false);
       }
     },
-    [loadAll]
+    [loadAll, refreshNow]
   );
 
   const updateClusterStatus = useCallback(async (cluster: JobCluster, viewed: boolean, saved: boolean) => {
