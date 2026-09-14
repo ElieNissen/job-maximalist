@@ -1,6 +1,12 @@
+
+
 # JobMAXIMALIST
 
 Un tableau de bord d'offres de missions/jobs qui centralise tout, donne un contrôle fin sur les sources suivies, réduit le bruit grâce à un tri avancé, et permet de repérer plus vite les annonces réellement pertinentes en quasi temps réel. L'objectif : remplacer la FOMO d'une veille manuelle, fragmentée et redondante par une paix intérieure au quotidien ✌️
+
+<img width="777" height="512" alt="jobmaximalist thumbnail" src="https://github.com/user-attachments/assets/61762076-9a21-4b3b-9c54-8aeb19aadbcf" />
+
+
 
 ## Ce que fait l'application
 
