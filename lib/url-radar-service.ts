@@ -1132,6 +1132,63 @@ function extractBusinessFranceOfferUrlsFromHtml(html: string): string[] {
   return ids.map((id) => `https://mon-vie-via.businessfrance.fr/offres/${id}`);
 }
 
+type BusinessFranceApiOffer = {
+  id?: number | string;
+  missionTitle?: string | null;
+  organizationName?: string | null;
+  countryName?: string | null;
+  cityName?: string | null;
+  missionType?: string | null;
+  missionDescription?: string | null;
+  missionProfile?: string | null;
+  creationDate?: string | null;
+  startBroadcastDate?: string | null;
+  missionStartDate?: string | null;
+};
+
+export function parseBusinessFranceSearchApiOffers(payload: unknown): NormalizedJob[] {
+  if (!payload || typeof payload !== "object") return [];
+
+  const result = (payload as { result?: unknown }).result;
+  if (!Array.isArray(result)) return [];
+
+  return result.flatMap((entry): NormalizedJob[] => {
+    if (!entry || typeof entry !== "object") return [];
+    const offer = entry as BusinessFranceApiOffer;
+    const id = String(offer.id ?? "").trim();
+    const title = decodeHtmlEntities(String(offer.missionTitle ?? "")).replace(/\s+/g, " ").trim();
+    const company = decodeHtmlEntities(String(offer.organizationName ?? "")).replace(/\s+/g, " ").trim();
+    if (!id || !title || !company) return [];
+
+    const location = [offer.countryName, offer.cityName]
+      .map((value) => String(value ?? "").replace(/\s+/g, " ").trim())
+      .filter(Boolean)
+      .join(" - ") || "International";
+    const metadataText = [offer.missionDescription, offer.missionProfile, offer.missionType]
+      .map((value) => String(value ?? "").trim())
+      .filter(Boolean)
+      .join(" ");
+    const postedAtValue = offer.startBroadcastDate ?? offer.creationDate ?? offer.missionStartDate;
+    const postedAt = postedAtValue ? new Date(postedAtValue) : null;
+
+    return [
+      withMetadata(
+        {
+          source: "career_sites",
+          sourceJobId: id,
+          title,
+          company,
+          location,
+          contractType: "OTHER",
+          url: `https://mon-vie-via.businessfrance.fr/offres/${encodeURIComponent(id)}`,
+          postedAt: postedAt && Number.isFinite(postedAt.getTime()) ? postedAt : null
+        },
+        metadataText
+      )
+    ];
+  });
+}
+
 function extractFreeWorkOfferUrlsFromHtml(html: string): string[] {
   return Array.from(
     new Set(
@@ -1465,8 +1522,28 @@ async function scrapeBusinessFranceWithPlaywright(targetUrl: string): Promise<Sc
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       });
+      const searchResponsePromise = page
+        .waitForResponse((response) => /\/api\/Offers\/search(?:\?|$)/i.test(response.url()), { timeout: 8000 })
+        .catch(() => null);
       await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
       await page.waitForTimeout(3500);
+
+      const searchResponse = await searchResponsePromise;
+      if (searchResponse) {
+        try {
+          const apiJobs = parseBusinessFranceSearchApiOffers(await searchResponse.json());
+          if (apiJobs.length > 0) {
+            return {
+              jobs: apiJobs,
+              errors: [],
+              attempts: [buildSuccessAttempt("vie_api_search", apiJobs, "rendered search API")],
+              selectedMethod: "vie_api_search"
+            };
+          }
+        } catch {
+          // Keep the rendered-link fallback below if the API response is not JSON.
+        }
+      }
 
       const detailUrls = await page.evaluate(() =>
         Array.from(
