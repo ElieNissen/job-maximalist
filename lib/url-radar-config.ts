@@ -11,6 +11,7 @@ import {
 } from "@/lib/runtime-paths";
 
 export interface UrlRadarConfig {
+  assistanceMode?: import("@/lib/local-assistance-types").AssistanceMode;
   enabled: boolean;
   intervalMinutes: number;
   urls: string[];
@@ -28,6 +29,7 @@ const REMOVED_URL_HISTORY_RETENTION_MS = 24 * 60 * 60 * 1000;
 export const URL_RADAR_DEFAULT_URLS = [] as const;
 
 const DEFAULT_CONFIG: UrlRadarConfig = {
+  assistanceMode: "off",
   enabled: true,
   intervalMinutes: 60,
   urls: [...URL_RADAR_DEFAULT_URLS],
@@ -77,6 +79,7 @@ function sanitizeConfig(input: unknown): UrlRadarConfig {
 
   return {
     enabled: typeof raw.enabled === "boolean" ? raw.enabled : DEFAULT_CONFIG.enabled,
+    assistanceMode: raw.assistanceMode === "auto" || raw.assistanceMode === "ask" ? raw.assistanceMode : "off",
     intervalMinutes:
       typeof raw.intervalMinutes === "number" && raw.intervalMinutes >= 15
         ? Math.min(24 * 60, raw.intervalMinutes)

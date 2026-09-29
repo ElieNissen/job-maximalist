@@ -11,6 +11,8 @@ import { canonicalUrl, decodeHtmlEntities, normalizeText, parseContractType } fr
 import { canUseCloudflareForUrl, fetchRenderedHtmlViaCloudflare, fetchRenderedHtmlViaCloudflareCrawl } from "@/lib/cloudflare-browser-rendering";
 import { inferSourceFromUrl } from "@/lib/url-radar-sources";
 import { getRuntimeStateBackupFilePath, getRuntimeStateFilePath } from "@/lib/runtime-paths";
+import { scheduleRepair, trySavedRecipe } from "@/lib/local-assistance";
+import { getUrlRadarConfig } from "@/lib/url-radar-config";
 
 type RunStatus = "SUCCESS" | "PARTIAL" | "FAILED";
 type AttemptStatus = "success" | "empty" | "error" | "skipped";
@@ -32,6 +34,7 @@ interface ScrapeResult {
 }
 
 export interface UrlRadarJob {
+  extractionMethod?: "saved_recipe";
   id: string;
   source: JobSource;
   sourceJobId: string;
@@ -2313,7 +2316,7 @@ function migrateJob(job: any, filters?: JobSearchFilters): UrlRadarJob {
   const isApec = url.includes("apec.fr/candidat/recherche-emploi.html/emploi/detail-offre/");
   const isBusinessFrance = url.includes("businessfrance.fr/offres/");
   const isLicorneSociety = url.includes("licornesociety.com/job/");
-  const reparsedApec = isApec
+  const reparsedApec = isApec && job.extractionMethod !== "saved_recipe"
     ? (() => {
         const raw = String(metadataText ?? job.title ?? "");
         const { company, title } = extractApecCompanyAndTitle(raw);
@@ -2325,7 +2328,7 @@ function migrateJob(job: any, filters?: JobSearchFilters): UrlRadarJob {
         };
       })()
     : null;
-  const reparsedBusinessFrance = isBusinessFrance
+  const reparsedBusinessFrance = isBusinessFrance && job.extractionMethod !== "saved_recipe"
     ? (() => {
         const raw = String(metadataText ?? `${job.company ?? ""} ${job.title ?? ""}`);
         const parsed = parseBusinessFranceDetailPage(url, `<html><body>${raw}</body></html>`);
@@ -2381,6 +2384,7 @@ function migrateJob(job: any, filters?: JobSearchFilters): UrlRadarJob {
 
   return {
     id: String(job.id),
+    extractionMethod: job.extractionMethod === "saved_recipe" ? "saved_recipe" : undefined,
     source,
     sourceJobId,
     title: normalizedForFilters.title,
@@ -2466,6 +2470,7 @@ function toStoredJob(
   const timestamp = seenAt.toISOString();
   return {
     id: deterministicHash(key),
+    extractionMethod: job.extractionMethod,
     source: job.source,
     sourceJobId: job.sourceJobId,
     title: job.title,
@@ -2487,7 +2492,17 @@ function toStoredJob(
   };
 }
 
-export async function reclassifyUrlRadarState(config: UrlRadarConfig): Promise<{ total: number; visible: number }> {
+// Serialize repairs, refreshes and favourite changes to avoid overwriting user state.
+const stateGlobal = globalThis as typeof globalThis & { jobmaxStateQueue?: Promise<unknown> };
+function serializeState<T>(operation: () => Promise<T>): Promise<T> {
+  const result = (stateGlobal.jobmaxStateQueue ?? Promise.resolve()).then(operation);
+  stateGlobal.jobmaxStateQueue = result.catch(() => undefined);
+  return result;
+}
+export function reclassifyUrlRadarState(config: UrlRadarConfig) {
+  return serializeState(() => reclassifyState(config));
+}
+async function reclassifyState(config: UrlRadarConfig): Promise<{ total: number; visible: number }> {
   const filters = getUrlRadarFilters(config);
   const state = await readState(filters);
   await writeState(state);
@@ -2498,17 +2513,34 @@ export async function reclassifyUrlRadarState(config: UrlRadarConfig): Promise<{
   };
 }
 
-export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNew: number; summary: Record<string, { parsed: number; visible: number; newVisible: number; errors: string[]; attempts: StrategyAttempt[]; selectedMethod: string | null }> }> {
+export function refreshUrlRadar(config: UrlRadarConfig) {
+  return serializeState(() => refreshState(config));
+}
+export async function requestSourceRepair(url: string, manual = true) {
+  await scheduleRepair(url, manual, (jobs) => serializeState(async () => {
+    const config = await getUrlRadarConfig();
+    if (config.assistanceMode === "off" || !config.urls.includes(url)) return;
+    await refreshState(config, { url, jobs });
+  }));
+}
+async function refreshState(config: UrlRadarConfig, repaired?: { url: string; jobs: NormalizedJob[] }): Promise<{ totalNew: number; summary: Record<string, { parsed: number; visible: number; newVisible: number; errors: string[]; attempts: StrategyAttempt[]; selectedMethod: string | null }> }> {
   const filters = getUrlRadarFilters(config);
   const state = await readState(filters);
   const summary: Record<string, { parsed: number; visible: number; newVisible: number; errors: string[]; attempts: StrategyAttempt[]; selectedMethod: string | null }> = {};
   let totalNew = 0;
 
   const jobsById = new Map(state.jobs.map((job) => [job.id, job]));
+  const jobsByUrl = new Map(state.jobs.map((job) => [canonicalUrl(job.url), job]));
+  const needsRepair: string[] = [];
   const seenAt = new Date();
 
-  for (const url of config.urls) {
-    const result = await scrapeTarget(url);
+  for (const url of repaired ? [repaired.url] : config.urls) {
+    const savedJobs = repaired?.jobs ?? await trySavedRecipe(url).catch(() => null);
+    const result: ScrapeResult = savedJobs !== null
+      ? { jobs: savedJobs, errors: [], attempts: [buildSuccessAttempt("saved_recipe", savedJobs, "Méthode locale enregistrée")], selectedMethod: "saved_recipe" }
+      : await scrapeTarget(url);
+    // A filtered-out job is not a parsing failure.
+    if (!repaired && (result.jobs.length === 0 || result.jobs.every((job) => !job.title || job.title.length > 200 || isCallToActionTitle(job.title)))) needsRepair.push(url);
     summary[url] = {
       parsed: result.jobs.length,
       visible: 0,
@@ -2521,7 +2553,7 @@ export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNe
     for (const job of result.jobs) {
       const filter = matchesFilters(job, filters);
       const stored = toStoredJob(job, seenAt, filter.matchedKeywords, filter.excludedReason, filter.excludedKeywords);
-      const existing = jobsById.get(stored.id);
+      const existing = jobsById.get(stored.id) ?? jobsByUrl.get(canonicalUrl(stored.url));
       const passesCurrentFilters = stored.excludedReason === null;
 
       if (passesCurrentFilters) {
@@ -2538,8 +2570,9 @@ export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNe
             ? existing.postedAt
             : stored.postedAt;
 
-        jobsById.set(stored.id, {
+        jobsById.set(existing.id, {
           ...stored,
+          id: existing.id,
           postedAt,
           firstSeenAt: existing.firstSeenAt ?? existing.scrapedAt ?? stored.firstSeenAt,
           lastSeenAt: stored.lastSeenAt,
@@ -2569,7 +2602,7 @@ export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNe
           .flatMap(([url, item]) => item.errors.map((err) => `${url}: ${err}`))
           .join(" | ")
       : null,
-    summary
+    summary: repaired ? { ...state.runs[0]?.summary, ...summary } : summary
   };
 
   const jobs = Array.from(jobsById.values()).sort((a, b) => {
@@ -2580,6 +2613,8 @@ export async function refreshUrlRadar(config: UrlRadarConfig): Promise<{ totalNe
 
   const runs = [run, ...state.runs].slice(0, 60);
   await writeState({ jobs, runs });
+
+  for (const url of needsRepair) await requestSourceRepair(url, false).catch(() => undefined);
 
   return { totalNew, summary };
 }
@@ -2631,7 +2666,10 @@ export async function getUrlRadarJobs(config: UrlRadarConfig | undefined, page: 
   };
 }
 
-export async function updateUrlRadarJobStatus(id: string, viewed: boolean, saved: boolean) {
+export function updateUrlRadarJobStatus(id: string, viewed: boolean, saved: boolean) {
+  return serializeState(() => updateJobStatus(id, viewed, saved));
+}
+async function updateJobStatus(id: string, viewed: boolean, saved: boolean) {
   const state = await readState();
   const index = state.jobs.findIndex((job) => job.id === id);
   if (index === -1) return null;

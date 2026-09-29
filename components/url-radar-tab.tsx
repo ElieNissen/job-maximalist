@@ -7,6 +7,7 @@ import { OnboardingModal } from "@/components/url-radar/onboarding-modal";
 import { SecondaryPanel } from "@/components/url-radar/secondary-panel";
 import { MainTabSwitch, SectionTabs } from "@/components/url-radar/section-tabs";
 import { SourceFilterBar } from "@/components/url-radar/source-filter-bar";
+import { AssistanceActivity } from "@/components/url-radar/local-assistance";
 import type {
   JobCluster,
   MainTab,
@@ -285,6 +286,7 @@ export default function UrlRadarTab() {
         if (!response.ok) throw new Error("Save failed");
         const savedConfig = (await response.json()) as UrlRadarConfig;
         setConfig(normalizeConfig(savedConfig));
+        window.dispatchEvent(new Event("radar-config-saved"));
 
         if (options.refreshAfterSave) {
           void refreshNow();
@@ -469,9 +471,11 @@ export default function UrlRadarTab() {
 
   useEffect(() => {
     loadAll();
+    window.addEventListener("radar-repair-completed", loadAll);
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
+    return () => window.removeEventListener("radar-repair-completed", loadAll);
   }, [loadAll]);
 
   useEffect(() => {
@@ -625,6 +629,7 @@ export default function UrlRadarTab() {
           />
 
           <div className="radar-results-pane">
+            <AssistanceActivity onOpenSettings={() => setUtilitySection("settings")} />
             {error ? <div className="radar-inline-error radar-error-banner">Erreur: {error}</div> : null}
 
             <JobsColumn

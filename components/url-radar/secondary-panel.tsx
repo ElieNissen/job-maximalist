@@ -28,6 +28,7 @@ import type {
   UtilitySection
 } from "@/components/url-radar/types";
 import { formatDate } from "@/components/url-radar/utils";
+import { AssistanceSettings, SourceRepair } from "@/components/url-radar/local-assistance";
 
 type SecondaryPanelProps = {
   openSection: UtilitySection | null;
@@ -317,6 +318,7 @@ function SourceDiagnosticsCard({
       >
         Ouvrir le détail
       </button>
+      <SourceRepair url={url} />
     </article>
   );
 }
@@ -816,6 +818,7 @@ function UrlsSettingsPanel({ draftConfig, setDraftConfig }: { draftConfig: UrlRa
   return (
     <div className="radar-form-grid radar-form-grid--urls">
       <RefreshIntervalSelector draftConfig={draftConfig} setDraftConfig={setDraftConfig} />
+      <AssistanceSettings value={draftConfig.assistanceMode ?? "off"} onChange={(assistanceMode) => setDraftConfig((previous) => ({ ...previous, assistanceMode }))} />
 
       <div className="radar-url-list">
         {draftConfig.urls.map((url, index) => (

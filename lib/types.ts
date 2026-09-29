@@ -20,6 +20,7 @@ export interface JobSearchFilters {
 }
 
 export interface NormalizedJob {
+  extractionMethod?: "saved_recipe";
   source: JobSource;
   sourceJobId: string;
   title: string;

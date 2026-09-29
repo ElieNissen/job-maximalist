@@ -16,6 +16,7 @@ import {
 } from "@/lib/url-radar-filters";
 import type { EditableContractType } from "@/lib/url-radar-filters";
 import type { UrlRadarConfig } from "@/components/url-radar/types";
+import { AssistanceSettings } from "@/components/url-radar/local-assistance";
 
 type OnboardingMode = "wizard" | "setup";
 type OnboardingStepId = "urls" | "keywords" | "preferences";
@@ -378,6 +379,7 @@ export function OnboardingModal({ config, mode, saving, onComplete, onDismiss }:
 
   const preferencesSection = (
     <>
+      <AssistanceSettings value={draftConfig.assistanceMode ?? "off"} onChange={(assistanceMode) => setDraftConfig((previous) => ({ ...previous, assistanceMode }))} />
       <section className="radar-onboarding-section">
         <div className="radar-onboarding-section__header">
           <strong>Localisations</strong>

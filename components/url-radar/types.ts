@@ -6,6 +6,7 @@ export type RemovedUrlHistoryEntry = {
 };
 
 export type UrlRadarConfig = {
+  assistanceMode?: import("@/lib/local-assistance-types").AssistanceMode;
   enabled: boolean;
   intervalMinutes: number;
   urls: string[];
