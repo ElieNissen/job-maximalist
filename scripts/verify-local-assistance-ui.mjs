@@ -48,10 +48,10 @@ try {
   await page.getByText("Connexion au site", { exact: true }).click();
   await page.getByRole("button", { name: "Se connecter au site", exact: true }).click();
   await page.getByRole("button", { name: "J’ai terminé la connexion", exact: true }).click();
-  await page.getByText("Connexion au site · session enregistrée", { exact: true }).waitFor();
+  await page.getByText("Connexion au site · session sauvegardée", { exact: true }).waitFor();
   assert.equal(session, "saved");
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByText("Connexion au site · session enregistrée", { exact: true }).click();
+  await page.getByText("Connexion au site · session sauvegardée", { exact: true }).click();
   await page.getByRole("button", { name: "Se reconnecter", exact: true }).click();
   await page.getByRole("button", { name: "J’ai terminé la connexion", exact: true }).waitFor();
   await page.screenshot({ path: "test-results/local-assistance-connection-mobile.png", fullPage: true });
@@ -60,7 +60,7 @@ try {
   await page.getByText("Connexion au site", { exact: true }).click();
   await page.getByRole("button", { name: "Se connecter au site", exact: true }).click();
   await page.getByRole("button", { name: "J’ai terminé la connexion", exact: true }).click();
-  await page.getByText("Connexion au site · session enregistrée", { exact: true }).click();
+  await page.getByText("Connexion au site · session sauvegardée", { exact: true }).click();
   await page.getByRole("button", { name: "Oublier la session locale", exact: true }).click();
   assert.equal(session, "none");
   await page.setViewportSize({ width: 390, height: 844 });

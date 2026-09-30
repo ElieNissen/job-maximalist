@@ -97,7 +97,7 @@ export function SourceRepair({ url }: { url: string }) {
     {info?.status === "needs_permission" && !busy ? <button type="button" className="radar-inline-button" onClick={() => void act("defer", url)}>Plus tard</button> : null}
     {!enabled ? <p className="radar-secondary-note">Active et enregistre l’assistance locale dans l’onglet URLs pour réparer cette source.</p> : null}
     <details className="radar-source-session" open={session === "connecting" || info?.status === "connection_required" ? true : undefined}>
-      <summary>Connexion au site{session === "saved" ? " · session enregistrée" : ""}</summary>
+      <summary>Connexion au site{session === "saved" ? " · session sauvegardée" : ""}</summary>
       {session === "connecting" ? <>
         <p className="radar-secondary-note">Connecte-toi dans la fenêtre ouverte, puis reviens ici. La session sera conservée uniquement sur cet ordinateur, pour ce site.</p>
         <div className="radar-inline-actions">
@@ -105,7 +105,7 @@ export function SourceRepair({ url }: { url: string }) {
           <button type="button" className="radar-inline-button" disabled={sending} onClick={() => void send("cancel_connection")}>Annuler la connexion</button>
         </div>
       </> : <>
-        <p className="radar-secondary-note">{session === "saved" ? "Cette session est utilisée pendant les actualisations. Si elle expire, reconnecte-toi ici." : "Si les offres nécessitent un compte, ouvre une fenêtre dédiée pour te connecter. Tes identifiants ne sont pas transmis à l’IA."}</p>
+        <p className="radar-secondary-note">{session === "saved" ? "Tu peux fermer la fenêtre de connexion : la session est sauvegardée sur cet ordinateur. Sa durée dépend du site ; si elle expire, reconnecte-toi ici." : "Si les offres nécessitent un compte, ouvre une fenêtre dédiée pour te connecter. Tes identifiants ne sont pas transmis à l’IA."}</p>
         <div className="radar-inline-actions">
           <button type="button" className="radar-inline-button" disabled={sending || session === "opening" || !status?.urls.includes(url)} onClick={() => void send("connect")}>{sending || session === "opening" ? "Ouverture…" : session === "saved" ? "Se reconnecter" : "Se connecter au site"}</button>
           {session === "saved" ? <button type="button" className="radar-inline-button" disabled={sending} onClick={() => void send("forget_session")}>Oublier la session locale</button> : null}

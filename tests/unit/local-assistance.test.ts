@@ -46,6 +46,31 @@ describe("local repair lifecycle", () => {
     await api.scheduleRepair(url, true, vi.fn()); await finish();
     expect((await api.assistanceStatus()).sources[url]?.status).toBe("repaired");
   });
+  it("retries an invalid model data path and saves only the validated recipe", async () => {
+    const bad = { ...recipe, kind: "json", container: "offers", endpoint: "https://example.org/api", title: "$.title" };
+    let proposals = 0;
+    mocks.fetch.mockImplementation(async (endpoint: string) => new Response(JSON.stringify(
+      endpoint.endsWith("/api/tags") ? { models: [{ name: "qwen3.5:4b" }] }
+        : endpoint.endsWith("/api/chat") ? { message: { content: JSON.stringify(proposals++ === 0 ? bad : recipe) } } : {}
+    )));
+    const api = await import("@/lib/local-assistance");
+    await api.scheduleRepair(url, true, vi.fn().mockResolvedValue(undefined)); await finish();
+    expect(proposals).toBe(2);
+    expect((await api.assistanceStatus()).sources[url]?.status).toBe("repaired");
+    expect(JSON.parse(await readFile(path.join(mocks.directory, "scraping-recipes.json"), "utf8"))[url].recipe).toEqual(recipe);
+  });
+  it("explains a repeated invalid model path without replacing the previous method", async () => {
+    const api = await import("@/lib/local-assistance");
+    await api.scheduleRepair(url, true, vi.fn()); await finish();
+    const bad = { ...recipe, kind: "json", container: "offers", endpoint: "https://example.org/api", title: "$.title" };
+    mocks.fetch.mockImplementation(async (endpoint: string) => new Response(JSON.stringify(
+      endpoint.endsWith("/api/tags") ? { models: [{ name: "qwen3.5:4b" }] }
+        : endpoint.endsWith("/api/chat") ? { message: { content: JSON.stringify(bad) } } : {}
+    )));
+    await api.scheduleRepair(url, true, vi.fn()); await finish();
+    expect((await api.assistanceStatus()).sources[url]?.message).toContain("Ta connexion n’est pas en cause");
+    expect(JSON.parse(await readFile(path.join(mocks.directory, "scraping-recipes.json"), "utf8"))[url].recipe).toEqual(recipe);
+  });
   it("does not ask or infer for genuinely empty pages", async () => {
     mocks.config.assistanceMode = "ask";
     mocks.capture.mockResolvedValue({ empty: true, blocked: false, hasJobs: false });
