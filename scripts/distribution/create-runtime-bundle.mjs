@@ -140,6 +140,12 @@ async function main() {
   await ensureDirectory(appDirectory);
 
   await fs.cp(standaloneDirectory, appDirectory, { recursive: true });
+  // Next standalone may copy the developer's local .env files. They must never ship in a portable package.
+  for (const name of await fs.readdir(appDirectory)) {
+    if (/^\.env(?:\..+)?$/.test(name)) {
+      await fs.rm(path.join(appDirectory, name), { force: true });
+    }
+  }
   await fs.cp(staticDirectory, path.join(appDirectory, ".next", "static"), { recursive: true });
   await fs.cp(publicDirectory, path.join(appDirectory, "public"), { recursive: true });
   await fs.copyFile(runtimeScriptSource, path.join(appDirectory, "jobmaximalist-runtime.mjs"));
