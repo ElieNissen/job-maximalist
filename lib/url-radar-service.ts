@@ -11,7 +11,8 @@ import { canonicalUrl, decodeHtmlEntities, normalizeText, parseContractType } fr
 import { canUseCloudflareForUrl, fetchRenderedHtmlViaCloudflare, fetchRenderedHtmlViaCloudflareCrawl } from "@/lib/cloudflare-browser-rendering";
 import { inferSourceFromUrl } from "@/lib/url-radar-sources";
 import { getRuntimeStateBackupFilePath, getRuntimeStateFilePath } from "@/lib/runtime-paths";
-import { scheduleRepair, trySavedRecipe } from "@/lib/local-assistance";
+import { scheduleRepair, trySavedRecipe, savedRecipeNeedsRepair } from "@/lib/local-assistance";
+import { newSourcePage } from "@/lib/source-sessions";
 import { getUrlRadarConfig } from "@/lib/url-radar-config";
 
 type RunStatus = "SUCCESS" | "PARTIAL" | "FAILED";
@@ -642,7 +643,7 @@ async function scrapeWttjWithPlaywright(targetUrl: string): Promise<ScrapeResult
 
     try {
       const apiJobs = new Map<string, NormalizedJob>();
-      const page = await browser.newPage({
+      const page = await newSourcePage(browser, targetUrl, {
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       });
@@ -811,7 +812,7 @@ async function scrapeIndeedWithPlaywright(targetUrl: string): Promise<ScrapeResu
     const browser = await playwright.chromium.launch({ headless: true });
 
     try {
-      const page = await browser.newPage({
+      const page = await newSourcePage(browser, targetUrl, {
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
         locale: "fr-FR"
@@ -1360,7 +1361,7 @@ async function scrapeAdzunaWithPlaywright(targetUrl: string): Promise<ScrapeResu
     const browser = await playwright.chromium.launch({ headless: true });
 
     try {
-      const page = await browser.newPage({
+      const page = await newSourcePage(browser, targetUrl, {
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       });
@@ -1521,7 +1522,7 @@ async function scrapeBusinessFranceWithPlaywright(targetUrl: string): Promise<Sc
     const browser = await playwright.chromium.launch({ headless: true });
 
     try {
-      const page = await browser.newPage({
+      const page = await newSourcePage(browser, targetUrl, {
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       });
@@ -1639,7 +1640,7 @@ async function scrapeLicorneSocietyWithPlaywright(targetUrl: string): Promise<Sc
     const browser = await playwright.chromium.launch({ headless: true });
 
     try {
-      const page = await browser.newPage({
+      const page = await newSourcePage(browser, targetUrl, {
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       });
@@ -1748,7 +1749,7 @@ async function scrapeHiringCafeWithPlaywright(targetUrl: string): Promise<Scrape
     const browser = await playwright.chromium.launch({ headless: true });
 
     try {
-      const page = await browser.newPage({
+      const page = await newSourcePage(browser, targetUrl, {
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       });
@@ -1872,7 +1873,7 @@ async function scrapeApecWithPlaywright(targetUrl: string): Promise<ScrapeResult
     const browser = await playwright.chromium.launch({ headless: true });
 
     try {
-      const page = await browser.newPage({
+      const page = await newSourcePage(browser, targetUrl, {
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       });
@@ -2079,7 +2080,7 @@ async function scrapeGenericWithPlaywright(targetUrl: string): Promise<ScrapeRes
     const browser = await playwright.chromium.launch({ headless: true });
 
     try {
-      const page = await browser.newPage({
+      const page = await newSourcePage(browser, targetUrl, {
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       });
@@ -2540,7 +2541,7 @@ async function refreshState(config: UrlRadarConfig, repaired?: { url: string; jo
       ? { jobs: savedJobs, errors: [], attempts: [buildSuccessAttempt("saved_recipe", savedJobs, "Méthode locale enregistrée")], selectedMethod: "saved_recipe" }
       : await scrapeTarget(url);
     // A filtered-out job is not a parsing failure.
-    if (!repaired && (result.jobs.length === 0 || result.jobs.every((job) => !job.title || job.title.length > 200 || isCallToActionTitle(job.title)))) needsRepair.push(url);
+    if (!repaired && (savedRecipeNeedsRepair(url) || result.jobs.length === 0 || result.jobs.every((job) => !job.title || job.title.length > 200 || isCallToActionTitle(job.title)))) needsRepair.push(url);
     summary[url] = {
       parsed: result.jobs.length,
       visible: 0,

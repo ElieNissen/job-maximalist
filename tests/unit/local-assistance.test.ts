@@ -66,9 +66,21 @@ describe("local repair lifecycle", () => {
     mocks.extract.mockResolvedValue([]);
     await api.scheduleRepair(url, true, vi.fn()); await finish();
     expect((await api.assistanceStatus()).sources[url]?.status).toBe("failed");
+    await api.trySavedRecipe(url);
+    expect((await api.assistanceStatus()).sources[url]?.status).toBe("incomplete");
     const before = mocks.capture.mock.calls.length;
     await api.scheduleRepair(url, false, vi.fn()); await finish();
     expect(mocks.capture.mock.calls).toHaveLength(before);
     expect(JSON.parse(await readFile(path.join(mocks.directory, "scraping-recipes.json"), "utf8"))[url].recipe).toEqual(recipe);
+  });
+  it("requests reconnection for an expired session without invoking the model", async () => {
+    const api = await import("@/lib/local-assistance");
+    await api.scheduleRepair(url, false, vi.fn()); await finish();
+    mocks.capture.mockResolvedValue({ loginRequired: true, blocked: true, empty: false });
+    const before = mocks.fetch.mock.calls.length;
+    expect(await api.trySavedRecipe(url)).toBeNull();
+    await api.scheduleRepair(url, false, vi.fn()); await finish();
+    expect(mocks.fetch.mock.calls).toHaveLength(before);
+    expect((await api.assistanceStatus()).sources[url]?.status).toBe("connection_required");
   });
 });

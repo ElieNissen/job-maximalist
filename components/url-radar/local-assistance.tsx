@@ -3,8 +3,9 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { AssistanceMode, RepairInfo } from "@/lib/local-assistance-types";
 
-type Status = { available: boolean; modelReady: boolean; downloading: boolean; downloadMessage: string | null; mode: AssistanceMode; urls: string[]; sources: Record<string, RepairInfo | undefined> };
-type Context = { status: Status | null; error: string | null; act: (action: "download" | "repair" | "defer", url?: string) => Promise<void>; refresh: () => Promise<void> };
+type Action = "download" | "repair" | "defer" | "connect" | "finish_connection" | "cancel_connection" | "forget_session";
+type Status = { available: boolean; modelReady: boolean; downloading: boolean; downloadMessage: string | null; mode: AssistanceMode; urls: string[]; sources: Record<string, RepairInfo | undefined>; sessions?: Record<string, "none" | "opening" | "connecting" | "saved"> };
+type Context = { status: Status | null; error: string | null; act: (action: Action, url?: string) => Promise<void>; refresh: () => Promise<void> };
 const AssistanceContext = createContext<Context | null>(null);
 export function AssistanceProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status | null>(null);
@@ -32,7 +33,7 @@ export function AssistanceProvider({ children }: { children: ReactNode }) {
     window.addEventListener("radar-config-saved", refresh);
     return () => { active = false; clearTimeout(timeout); window.removeEventListener("radar-config-saved", refresh); };
   }, [refresh]);
-  const act = useCallback(async (action: "download" | "repair" | "defer", url?: string) => {
+  const act = useCallback(async (action: Action, url?: string) => {
     setError(null);
     try {
       const response = await fetch("/api/url-radar/assistance", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, url }) });
@@ -85,6 +86,8 @@ export function SourceRepair({ url }: { url: string }) {
   const info = sourceInfo(status, url);
   const enabled = status?.mode !== "off" && status?.urls.includes(url);
   const busy = sending || info?.status === "queued" || info?.status === "repairing";
+  const session = status?.sessions?.[url] ?? "none";
+  const send = async (action: Action) => { setSending(true); try { await act(action, url); } finally { setSending(false); } };
   if (!url) return null;
   return <div className="radar-local-repair">
     {info ? <p className="radar-secondary-note" role="status">{info.message}</p> : null}
@@ -93,17 +96,33 @@ export function SourceRepair({ url }: { url: string }) {
     </button>
     {info?.status === "needs_permission" && !busy ? <button type="button" className="radar-inline-button" onClick={() => void act("defer", url)}>Plus tard</button> : null}
     {!enabled ? <p className="radar-secondary-note">Active et enregistre l’assistance locale dans l’onglet URLs pour réparer cette source.</p> : null}
+    <details className="radar-source-session" open={session === "connecting" || info?.status === "connection_required" ? true : undefined}>
+      <summary>Connexion au site{session === "saved" ? " · session enregistrée" : ""}</summary>
+      {session === "connecting" ? <>
+        <p className="radar-secondary-note">Connecte-toi dans la fenêtre ouverte, puis reviens ici. La session sera conservée uniquement sur cet ordinateur, pour ce site.</p>
+        <div className="radar-inline-actions">
+          <button type="button" className="radar-inline-button" disabled={sending} onClick={() => void send("finish_connection")}>{sending ? "Vérification…" : "J’ai terminé la connexion"}</button>
+          <button type="button" className="radar-inline-button" disabled={sending} onClick={() => void send("cancel_connection")}>Annuler la connexion</button>
+        </div>
+      </> : <>
+        <p className="radar-secondary-note">{session === "saved" ? "Cette session est utilisée pendant les actualisations. Si elle expire, reconnecte-toi ici." : "Si les offres nécessitent un compte, ouvre une fenêtre dédiée pour te connecter. Tes identifiants ne sont pas transmis à l’IA."}</p>
+        <div className="radar-inline-actions">
+          <button type="button" className="radar-inline-button" disabled={sending || session === "opening" || !status?.urls.includes(url)} onClick={() => void send("connect")}>{sending || session === "opening" ? "Ouverture…" : session === "saved" ? "Se reconnecter" : "Se connecter au site"}</button>
+          {session === "saved" ? <button type="button" className="radar-inline-button" disabled={sending} onClick={() => void send("forget_session")}>Oublier la session locale</button> : null}
+        </div>
+      </>}
+    </details>
     {error ? <p className="radar-inline-error" role="alert">{error}</p> : null}
   </div>;
 }
 
 export function AssistanceActivity({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { status } = useAssistance();
-  if (!status || status.mode === "off") return null;
+  if (!status) return null;
   const relevant = status.urls.map((url) => sourceInfo(status, url)).filter(Boolean);
-  const pending = relevant.filter((s) => s?.status === "needs_permission").length;
+  const pending = status.mode !== "off" ? relevant.filter((s) => s?.status === "needs_permission").length : 0;
   const busy = relevant.some((s) => s?.status === "queued" || s?.status === "repairing");
-  const unavailable = relevant.some((s) => s?.status === "unavailable" || s?.status === "failed");
+  const unavailable = relevant.some((s) => s?.status === "connection_required" || s?.status === "incomplete" || (status.mode !== "off" && (s?.status === "unavailable" || s?.status === "failed")));
   if (!pending && !busy && !unavailable) return null;
   return <div className="radar-assistance-activity" role="status">
     <span>{busy ? "Rétablissement d’une source en arrière-plan…" : pending ? `${pending} source(s) attendent ton accord pour une réparation.` : "Une source nécessite ton attention."}</span>

@@ -12,6 +12,7 @@ try {
   const url = "https://example.org/jobs/search";
   const config = { enabled: false, intervalMinutes: 60, urls: [url], filters: { keywordsInclude: [], keywordsExclude: [], locations: [], contractTypes: [], sources: [] }, removedUrlsHistory: [], onboardingCompletedAt: "2026-09-29T10:00:00Z", onboardingDismissedAt: null, assistanceMode: "ask" };
   let repairRequested = false;
+  let session = "none";
   await page.route("**/api/url-radar/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     let payload = {};
@@ -19,8 +20,15 @@ try {
     if (path.endsWith("/jobs")) payload = { items: [], total: 0 };
     if (path.endsWith("/status")) payload = { runs: [], lastRunSummary: {} };
     if (path.endsWith("/assistance")) {
-      if (route.request().method() === "POST") { repairRequested = route.request().postDataJSON().action === "repair"; payload = { ok: true }; }
-      else payload = { available: false, modelReady: false, downloading: false, mode: "ask", urls: [url], sources: { [url]: { status: repairRequested ? "repairing" : "needs_permission", message: repairRequested ? "Rétablissement de la récupération…" : "Des offres sont présentes mais mal récupérées. Autoriser une réparation locale ?", updatedAt: "2026-09-29T10:00:00Z" } } };
+      if (route.request().method() === "POST") {
+        const { action } = route.request().postDataJSON();
+        if (action === "repair") repairRequested = true;
+        if (action === "connect") session = "connecting";
+        if (action === "finish_connection") session = "saved";
+        if (action === "cancel_connection" || action === "forget_session") session = "none";
+        payload = { ok: true };
+      }
+      else payload = { available: false, modelReady: false, downloading: false, mode: "ask", urls: [url], sessions: { [url]: session }, sources: { [url]: { status: repairRequested ? "repairing" : "needs_permission", message: repairRequested ? "Rétablissement de la récupération…" : "Des offres sont présentes mais mal récupérées. Autoriser une réparation locale ?", updatedAt: "2026-09-29T10:00:00Z" } } };
     }
     await route.fulfill({ json: payload });
   });
@@ -37,6 +45,24 @@ try {
   await page.getByRole("button", { name: "Réparation en cours…" }).waitFor();
   assert.equal(repairRequested, true);
   await page.screenshot({ path: "test-results/local-assistance-repair.png", fullPage: true });
+  await page.getByText("Connexion au site", { exact: true }).click();
+  await page.getByRole("button", { name: "Se connecter au site", exact: true }).click();
+  await page.getByRole("button", { name: "J’ai terminé la connexion", exact: true }).click();
+  await page.getByText("Connexion au site · session enregistrée", { exact: true }).waitFor();
+  assert.equal(session, "saved");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByText("Connexion au site · session enregistrée", { exact: true }).click();
+  await page.getByRole("button", { name: "Se reconnecter", exact: true }).click();
+  await page.getByRole("button", { name: "J’ai terminé la connexion", exact: true }).waitFor();
+  await page.screenshot({ path: "test-results/local-assistance-connection-mobile.png", fullPage: true });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  await page.getByRole("button", { name: "Annuler la connexion", exact: true }).click();
+  await page.getByText("Connexion au site", { exact: true }).click();
+  await page.getByRole("button", { name: "Se connecter au site", exact: true }).click();
+  await page.getByRole("button", { name: "J’ai terminé la connexion", exact: true }).click();
+  await page.getByText("Connexion au site · session enregistrée", { exact: true }).click();
+  await page.getByRole("button", { name: "Oublier la session locale", exact: true }).click();
+  assert.equal(session, "none");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("tab", { name: "URLs", exact: true }).click();
   await page.getByText("Désactivée", { exact: true }).click();
@@ -44,5 +70,5 @@ try {
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   await page.screenshot({ path: "test-results/local-assistance-mobile.png", fullPage: true });
   assert.deepEqual(errors, []);
-  console.log("UI verified: settings, missing Ollama, consent, background repair, disabled mode, mobile width.");
+  console.log("UI verified: settings, missing Ollama, consent, background repair, connection, reconnection, cancellation, forget session, disabled mode, mobile width.");
 } finally { await browser.close(); }

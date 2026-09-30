@@ -6,7 +6,7 @@ import { cloneUrlRadarFilters, URL_RADAR_DEFAULT_FILTERS } from "@/lib/url-radar
 import type { NormalizedJob } from "@/lib/types";
 
 const mocks = vi.hoisted(() => ({ jobs: [] as NormalizedJob[], schedule: vi.fn() }));
-vi.mock("@/lib/local-assistance", () => ({ trySavedRecipe: async () => mocks.jobs, scheduleRepair: mocks.schedule }));
+vi.mock("@/lib/local-assistance", () => ({ trySavedRecipe: async () => mocks.jobs, scheduleRepair: mocks.schedule, savedRecipeNeedsRepair: () => false }));
 const previous = process.env.JOBMAX_APP_DATA_DIR;
 afterEach(() => { if (previous === undefined) delete process.env.JOBMAX_APP_DATA_DIR; else process.env.JOBMAX_APP_DATA_DIR = previous; vi.resetModules(); });
 describe("refresh with a saved recipe", () => {

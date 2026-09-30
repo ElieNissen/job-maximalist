@@ -1,5 +1,5 @@
 export type AssistanceMode = "off" | "ask" | "auto";
-export type RepairStatus = "needs_permission" | "queued" | "repairing" | "repaired" | "failed" | "unavailable" | "empty" | "deferred";
+export type RepairStatus = "needs_permission" | "queued" | "repairing" | "repaired" | "failed" | "unavailable" | "empty" | "deferred" | "connection_required" | "incomplete";
 export interface RepairInfo {
   status: RepairStatus;
   message: string;

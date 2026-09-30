@@ -15,5 +15,6 @@ prisma/dev.db-journal
 data/*.json
 data/scraping-recipes.json.backup
 data/scraping-recipes.json.tmp
+data/browser-sessions/
 !data/.gitkeep
 .local-profiles/

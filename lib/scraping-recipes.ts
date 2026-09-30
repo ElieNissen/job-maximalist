@@ -17,6 +17,7 @@ export interface ScrapingRecipe {
   urlPrefix: string;
   description: string;
   date: string;
+  navigation?: { kind: "none" | "next" | "load_more" | "scroll"; selector: string };
 }
 export interface JsonSample { endpoint: string; container: string; rows: Record<string, unknown>[] }
 export interface PageEvidence {
@@ -27,6 +28,10 @@ export interface PageEvidence {
   blocked: boolean;
   empty: boolean;
   hasJobs: boolean;
+  loginRequired?: boolean;
+  controls?: Array<{ selector: string; text: string; kind: "next" | "load_more" }>;
+  scrollContainers?: string[];
+  expectedCount?: number;
 }
 const fields = ["container", "endpoint", "title", "company", "location", "url", "urlPrefix", "description", "date"] as const;
 export function validateRecipe(input: unknown): ScrapingRecipe {
@@ -40,7 +45,9 @@ export function validateRecipe(input: unknown): ScrapingRecipe {
     throw new Error("Chemin de données invalide.");
   }
   if (r.urlPrefix && !/^https?:\/\//.test(r.urlPrefix)) throw new Error("Préfixe de lien invalide.");
-  return Object.fromEntries([...["version", "kind"].map((k) => [k, r[k as keyof ScrapingRecipe]]), ...fields.map((k) => [k, r[k]])]) as unknown as ScrapingRecipe;
+  const navigation = r.navigation;
+  if (navigation && (!["none", "next", "load_more", "scroll"].includes(navigation.kind) || typeof navigation.selector !== "string" || navigation.selector.length > 300 || (["next", "load_more"].includes(navigation.kind) && !navigation.selector))) throw new Error("Navigation invalide.");
+  return { ...Object.fromEntries([...["version", "kind"].map((k) => [k, r[k as keyof ScrapingRecipe]]), ...fields.map((k) => [k, r[k]])]), ...(navigation ? { navigation: { kind: navigation.kind, selector: navigation.selector } } : {}) } as unknown as ScrapingRecipe;
 }
 export function readField(value: unknown, field: string): unknown {
   if (!field) return undefined;
@@ -62,7 +69,7 @@ export function discoverArrays(value: unknown, endpoint: string, container = "",
   ).slice(0, 12);
 }
 
-export async function captureEvidence(page: Page, target: string): Promise<PageEvidence> {
+export async function captureEvidence(page: Page, target: string, action?: () => Promise<void>): Promise<PageEvidence> {
   const samples: JsonSample[] = [];
   const pending: Promise<void>[] = [];
   const listener = (response: import("playwright").Response) => {
@@ -77,11 +84,45 @@ export async function captureEvidence(page: Page, target: string): Promise<PageE
   };
   page.on("response", listener);
   try {
-    const response = await page.goto(target, { waitUntil: "domcontentloaded", timeout: 20000 });
+    const response = action ? (await action(), null) : await page.goto(target, { waitUntil: "domcontentloaded", timeout: 20000 });
     await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => undefined);
     await Promise.race([Promise.all(pending), new Promise((resolve) => setTimeout(resolve, 2000))]);
     const dom = await page.evaluate(() => {
       const root = document.querySelector("main, [role=main]") ?? document.body;
+      const visible = (el: Element) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden";
+      const selectorFor = (el: Element): string => {
+        if (el.id) return `#${CSS.escape(el.id)}`;
+        const label = el.getAttribute("aria-label");
+        if (label) return `${el.tagName.toLowerCase()}[aria-label=${JSON.stringify(label)}]`;
+        const testId = el.getAttribute("data-testid");
+        if (testId) return `[data-testid=${JSON.stringify(testId)}]`;
+        if (el.getAttribute("rel") === "next") return 'a[rel="next"]';
+        const classes = Array.from(el.classList).filter((c) => !/active|disabled|selected/.test(c));
+        if (classes.length) {
+          const candidate = el.tagName.toLowerCase() + classes.map((c) => `.${CSS.escape(c)}`).join("");
+          if (document.querySelectorAll(candidate).length === 1) return candidate;
+        }
+        const parts: string[] = [];
+        let node: Element | null = el;
+        while (node && node !== document.body) {
+          const index = Array.from(node.parentElement?.children ?? []).indexOf(node) + 1;
+          parts.unshift(`${node.tagName.toLowerCase()}:nth-child(${index})`); node = node.parentElement;
+        }
+        return `body > ${parts.join(" > ")}`;
+      };
+      const controls = Array.from(document.querySelectorAll("a,button,[role=button]")).filter(visible).flatMap((el) => {
+        const text = (el.getAttribute("aria-label") || el.textContent || "").replace(/\s+/g, " ").trim();
+        const disabled = el.hasAttribute("disabled") || el.getAttribute("aria-disabled") === "true";
+        if (disabled || /postuler|apply|delete|supprimer|déconnexion|logout/i.test(text)) return [];
+        const kind = /voir plus|afficher plus|charger plus|plus d.offres|load more|show more/i.test(text) ? "load_more" as const
+          : el.getAttribute("rel") === "next" || /^(?:page )?(?:suivante?|next)(?:\s|$|[›»→])/i.test(text) ? "next" as const : null;
+        const selector = selectorFor(el);
+        return kind && selector.length <= 300 ? [{ selector, text: text.slice(0, 100), kind }] : [];
+      }).slice(0, 12);
+      const scrollContainers = [root, ...Array.from(root.querySelectorAll("*"))]
+        .filter((el) => visible(el) && el.clientHeight > 150 && el.scrollHeight > el.clientHeight && /auto|scroll/.test(getComputedStyle(el).overflowY))
+        .slice(0, 4).map(selectorFor).filter((selector) => selector.length <= 300);
+      const passwordVisible = Array.from(document.querySelectorAll('input[type="password"]')).some(visible);
       const clone = root.cloneNode(true) as HTMLElement;
       clone.querySelectorAll("script,style,svg,iframe,header,footer,nav,form,input,textarea").forEach((e) => e.remove());
       clone.querySelectorAll("*").forEach((el) => {
@@ -90,19 +131,23 @@ export async function captureEvidence(page: Page, target: string): Promise<PageE
       return {
         html: clone.outerHTML.slice(0, 28000),
         text: (root as HTMLElement).innerText.slice(0, 20000),
-        links: Array.from(root.querySelectorAll<HTMLAnchorElement>("a[href]")).map((a) => a.href).slice(0, 1000)
+        links: Array.from(root.querySelectorAll<HTMLAnchorElement>("a[href]")).map((a) => a.href).slice(0, 1000),
+        controls, scrollContainers, passwordVisible
       };
     });
     const blocked = [401, 403, 429].includes(response?.status() ?? 0) || /verify you are human|vérifiez que vous êtes humain|access denied|just a moment/i.test(dom.text);
-    const empty = /(?:aucune? (?:offre|résultat)|0 (?:offres|résultats)|no (?:jobs|results|vacancies) found)/i.test(dom.text);
+    const empty = /(?:aucune? (?:offre|résultat)|\b0 (?:offres|résultats)|no (?:jobs|results|vacancies) found)/i.test(dom.text);
     const hasJobs = samples.some((s) => s.rows.length > 0) || dom.links.filter((l) => /\/(?:jobs?|offres?|careers?|positions?)\/[\w-]+/i.test(l) && !/\/(?:search|recherche)(?:[/?#]|$)/i.test(l)).length >= 2 || /\b[1-9]\d*\s+(?:offres?|jobs?|résultats?|vacancies)\b/i.test(dom.text);
-    return { ...dom, samples: samples.slice(0, 12), blocked, empty: empty && !samples.some((sample) => sample.rows.length > 0), hasJobs };
+    const loginRequired = response?.status() === 401 || dom.passwordVisible || (!hasJobs && (/(?:login|signin|connexion)/i.test(new URL(page.url()).pathname) || /(?:connectez.vous|sign in|log in|se connecter).{0,80}(?:offres|jobs|continuer|continue|résultats)/i.test(dom.text)));
+    const countMatch = /\d+\s*[-–]\s*\d+\s+(?:sur|of)\s+([1-9][\d ,.]*)/i.exec(dom.text) ?? /\b([1-9][\d\s,.]*)\s+(?:offres?|jobs?|résultats?|vacancies)\b/i.exec(dom.text);
+    const expectedCount = countMatch ? Number(countMatch[1].replace(/\D/g, "")) : undefined;
+    return { ...dom, samples: samples.slice(0, 12), blocked, empty: empty && !samples.some((sample) => sample.rows.length > 0), hasJobs, loginRequired, expectedCount };
   } finally { page.off("response", listener); }
 }
 
 export async function extractWithRecipe(page: Page, evidence: PageEvidence, input: ScrapingRecipe, target: string): Promise<NormalizedJob[]> {
   const recipe = validateRecipe(input);
-  if (evidence.blocked || evidence.empty) return [];
+  if (evidence.blocked || evidence.empty || evidence.loginRequired) return [];
   type Row = { title: string; company: string; location: string; url: string; description: string; date: string };
   let rows: Row[];
   if (recipe.kind === "json") {
@@ -150,5 +195,5 @@ export function repairPrompt(evidence: PageEvidence): string {
   const samples = evidence.samples.map((s) => ({ ...s, rows: s.rows.slice(0, 2).map((r) => Object.fromEntries(
     Object.entries(r).filter(([k]) => !/token|secret|password|email|contact|phone|candidate/i.test(k)).map(([k, v]) => [k, typeof v === "string" ? v.slice(0, 400) : typeof v === "number" ? v : null])
   )) }));
-  return JSON.stringify({ html: evidence.html, samples, links: evidence.links.slice(0, 80) }).slice(0, 44000);
+  return JSON.stringify({ controls: evidence.controls, scrollContainers: evidence.scrollContainers, expectedCount: evidence.expectedCount, html: evidence.html, samples, links: evidence.links.slice(0, 80) }).slice(0, 44000);
 }
